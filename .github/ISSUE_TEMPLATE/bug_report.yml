@@ -1,35 +1,48 @@
-name: 💡 Feature suggestion / feedback
-description: Share an idea or suggestion
-title: "[Idea]: "
-labels: ["enhancement"]
+name: 🐞 Bug report
+description: Something isn’t working as expected
+title: "[Bug]: "
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        I’d love to hear your ideas 💛  
-        You don’t need to be technical - just describe it in your own words.
+        Thanks for taking the time to report a problem 💛  
+        A few details really help me understand what’s going on.
 
   - type: textarea
-    id: idea
+    id: what-happened
     attributes:
-      label: Your idea or feedback
-      description: What would you like to improve or add?
-      placeholder: Describe the idea or feedback here
+      label: What happened?
+      description: What did you expect to happen, and what happened instead?
+      placeholder: Describe the issue in your own words
     validations:
       required: true
 
   - type: textarea
-    id: problem
+    id: steps
     attributes:
-      label: What problem would this solve? (optional)
-      placeholder: It would help because…
+      label: Steps to reproduce (if possible)
+      description: How can the issue be reproduced?
+      placeholder: |
+        1. Go to…
+        2. Click…
+        3. See error…
+    validations:
+      required: false
+
+  - type: textarea
+    id: device
+    attributes:
+      label: Device / browser
+      description: Optional, but helpful
+      placeholder: e.g. Mobile (iPhone), Desktop (Chrome)
     validations:
       required: false
 
   - type: textarea
     id: extra
     attributes:
-      label: Anything else you'd like to add?
-      description: Optional
+      label: Anything else?
+      description: Screenshots or extra details (optional)
     validations:
       required: false
