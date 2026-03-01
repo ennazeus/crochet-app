@@ -1,0 +1,35 @@
+name: 💡 Feature suggestion / feedback
+description: Share an idea or suggestion
+title: "[Idea]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        I’d love to hear your ideas 💛  
+        You don’t need to be technical — just describe it in your own words.
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea or feedback
+      description: What would you like to improve or add?
+      placeholder: Describe the idea or feedback here
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve? (optional)
+      placeholder: It would help because…
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else you'd like to add?
+      description: Optional
+    validations:
+      required: false
