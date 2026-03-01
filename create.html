@@ -42,7 +42,7 @@
       <input class="form-control" type="file" id="pattern_image" accept="image/*">
       <div class="form-text">Bilden skalas ner och sparas lokalt.</div>
 
-      <img id="imagePreview" class="img-fluid pattern-image" alt="Förhandsvisning">
+      <img id="imagePreview" class="img-fluid d-none pattern-image" alt="Förhandsvisning">
       <button type="button" id="removeImageBtn" class="btn btn-outline-danger btn-sm mt-2 d-none">
         <i class="bi bi-trash me-1"></i> Ta bort bild
       </button>
@@ -69,6 +69,29 @@
     </div>
   </form>
 </div>
+<footer class="app-footer">
+  <p class="footer-description">
+    En enkel app för att samla dina virk-mönster och hålla koll på var du är i arbetet. <br>
+    Allt sparas lokalt på din enhet, ingen inloggning krävs och dina mönster är alltid med dig, även offline!
+  </p>
+
+  <nav class="footer-links">
+    <a href="https://ko-fi.com/ennazeus" target="_blank" rel="noopener">
+      🧶 Stötta utvecklingen
+    </a>
+
+    <a href="https://github.com/ennazeus/crochet-app/issues/new/choose" target="_blank" rel="noopener">
+      Föreslå förbättringar eller rapportera fel
+    </a>
+    <a href="https://github.com/ennazeus/crochet-app/" target="_blank" rel="noopener">
+      Källkod på GitHub
+    </a>
+  </nav>
+
+  <p class="footer-meta">
+    © 2026 • Gratis och skapad med 💛 för virkare
+  </p>
+</footer>
 
 <!-- Bootstrap Bundle (måste ligga före eget JS om du använder data-bs-collapse, mm.) -->
 <script src="./vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

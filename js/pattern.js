@@ -176,6 +176,12 @@ function renderPattern(p) {
 
   // Delar
   for (const part of (p.parts || [])) {
+
+    // Bild för denna del
+    let partImgUrl = null;
+    if (part.image) {
+      partImgUrl = URL.createObjectURL(part.image);
+    }
     const partName = part.name || "Del";
 
     // part_id som nyckel för progress (fallback till namn för äldre data)
@@ -250,13 +256,39 @@ function renderPattern(p) {
       </div>
 
       <div id="${collapseId}" class="card-body px-3 py-2 d-none">
-        ${introHtml}
-        ${rowsHtml || `<div class="p-3 text-body-secondary">Inga varv i denna del.</div>`}
-        ${outroHtml}
+
+  <div class="row g-3">
+
+    <!-- TEXT-KOLUMN -->
+    <div class="${partImgUrl ? "col-12 col-lg-8" : "col-12"}">
+      ${introHtml}
+      ${rowsHtml || `<div class="p-3 text-body-secondary">Inga varv i denna del.</div>`}
+      ${outroHtml}
+    </div>
+
+    <!-- BILD-KOLUMN -->
+    ${partImgUrl ? `
+      <div class="col-12 col-lg-4 d-flex justify-content-lg-end align-items-start">
+        <img src="${escapeAttr(partImgUrl)}"
+            class="img-fluid rounded part-image"
+            alt="Bild för ${escapeAttr(partName)}">
       </div>
+    ` : ""}
+
+  </div>
+
+</div>
     `;
 
     content.appendChild(card);
+    // Släpp objectURL för part-bild
+    if (partImgUrl) {
+      const img = card.querySelector("img.part-image");
+      img?.addEventListener("load", () => {
+        URL.revokeObjectURL(partImgUrl);
+      }, { once: true });
+    }
+
   }
 }
 
@@ -353,6 +385,7 @@ resetBtn?.addEventListener("click", async () => {
   renderPattern(currentPattern);
 });
 
+
 async function main() {
   const id = getIdFromUrl();
   
@@ -372,6 +405,7 @@ async function main() {
 
   currentProgress = await loadProgress(pattern.id);
   renderPattern(pattern);
+  
   // öppna första delen automatiskt
   const firstBody = content.querySelector(".part-card .card-body");
   if (firstBody) firstBody.classList.remove("d-none");

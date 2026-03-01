@@ -3,10 +3,12 @@ registerPWA();
 import { idbGet, idbPut } from "./db.js";
 import { imageFileToResizedBlob } from "./image.js";
 
+// --- Elementreferenser ---
 const form = document.querySelector("form");
 const partsContainer = document.getElementById("partsContainer");
 const addPartBtn = document.getElementById("addPartBtn");
 
+// --- Kolla om vi är i edit-läge (med ?edit=ID) ---
 const params = new URLSearchParams(window.location.search);
 const editId = params.get("edit");
 
@@ -30,13 +32,16 @@ let currentImageBlob = null;
 let currentImageMeta = null;
 let removeImageFlag = false;
 
+// --- Hantering av bildval och förhandsvisning ---
 const imgInput = document.getElementById("pattern_image");
 const preview = document.getElementById("imagePreview");
 const removeImageBtn = document.getElementById("removeImageBtn");
 
+// Visar förhandsvisning av bilden från en Blob, eller döljer den om null.
 function showPreviewFromBlob(blob) {
   if (!preview) return;
 
+  // Om ingen blob => göm förhandsvisning och "ta bort bild"-knappen
   if (!blob) {
     preview.classList.add("d-none");
     preview.src = "";
@@ -44,6 +49,7 @@ function showPreviewFromBlob(blob) {
     return;
   }
 
+  // Skapa en temporär URL för bloben och visa den i img-elementet
   const url = URL.createObjectURL(blob);
   preview.src = url;
   preview.classList.remove("d-none");
@@ -57,8 +63,8 @@ imgInput?.addEventListener("change", async () => {
 
   removeImageFlag = false;
   const { blob, meta } = await imageFileToResizedBlob(file, {
-    maxWidth: 1400,
-    maxHeight: 1400,
+    maxWidth: 480,
+    maxHeight: 480,
     mimeType: "image/jpeg",
     quality: 0.82
   });
@@ -78,6 +84,12 @@ removeImageBtn?.addEventListener("click", () => {
 
 // --- Dynamisk hantering av delar och varv ---
 let partIndex = 0;
+
+const partImageState = new Map();
+// key = part_id
+// value = { blob, meta, removeFlag }
+
+
 
 function escapeAttr(s) {
   return String(s)
@@ -162,7 +174,19 @@ card.innerHTML = `
              value="${escapeAttr(partNameValue || "")}"
              required>
     </div>
+    <div class="mb-3">
+      <label class="form-label">Bild (valfri)</label>
+      <input type="file"
+            class="form-control partImageInput"
+            accept="image/*">
+      <div class="form-text">Skalas ner och sparas lokalt.</div>
 
+      <img class="img-fluid rounded mt-2 d-none partImagePreview">
+      <button type="button"
+              class="btn btn-outline-danger btn-sm mt-2 d-none removePartImageBtn">
+        <i class="bi bi-trash me-1"></i>Ta bort bild
+      </button>
+    </div>
     <div class="mb-3">
       <label class="form-label">Anteckningar</label>
       <textarea class="form-control"
@@ -432,9 +456,25 @@ partsContainer?.addEventListener("click", (e) => {
   const addRowBtn = e.target.closest(".addRowBtn");
   const removePartBtn = e.target.closest(".removePartBtn");
   const removeRowBtn = e.target.closest(".removeRowBtn");
+  const removePartImageBtn = e.target.closest(".removePartImageBtn");
   const replaceBtn = e.target.closest(".pasteRowsReplace");
   const appendBtn = e.target.closest(".pasteRowsAppend");
   const exampleBtn = e.target.closest(".pasteRowsExample");
+
+    if (removePartImageBtn) {
+    const card = removePartImageBtn.closest(".card");
+    const partId = card.dataset.partId;
+    const preview = card.querySelector(".partImagePreview");
+    const fileInput = card.querySelector(".partImageInput");
+
+    partImageState.set(partId, { blob: null, meta: null, removeFlag: true });
+
+    preview.src = "";
+    preview.classList.add("d-none");
+    removePartImageBtn.classList.add("d-none");
+    if (fileInput) fileInput.value = "";
+    return;
+  }
 
   if (addRowBtn) {
     const card = addRowBtn.closest(".card");
@@ -534,6 +574,35 @@ Varv 6-7: fm i alla m [11]`;
   }
 });
 
+partsContainer?.addEventListener("change", async (e) => {
+  const fileInput = e.target.closest(".partImageInput");
+  if (!fileInput) return;
+
+  const card = fileInput.closest(".card");
+  const partId = card.dataset.partId;
+  const preview = card.querySelector(".partImagePreview");
+  const removeBtn = card.querySelector(".removePartImageBtn");
+
+  const file = fileInput.files?.[0];
+  if (!file) return;
+
+  const { blob, meta } = await imageFileToResizedBlob(file, {
+    maxWidth: 480,
+    maxHeight: 480,
+    mimeType: "image/jpeg",
+    quality: 0.82
+  });
+
+  partImageState.set(partId, { blob, meta, removeFlag: false });
+
+  const url = URL.createObjectURL(blob);
+  preview.src = url;
+  preview.classList.remove("d-none");
+  removeBtn.classList.remove("d-none");
+
+  preview.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+});
+
 // --- Fill form from IndexedDB pattern (edit) ---
 async function fillFormFromPattern(p) {
   document.getElementById("pattern_name").value = p.name || "";
@@ -545,6 +614,8 @@ async function fillFormFromPattern(p) {
   for (const part of (p.parts || [])) {
     addPart(part.name || "", part.part_id); // <-- behåll part_id!
     const card = partsContainer.lastElementChild;
+
+
 
     const notes = card.querySelector(`textarea[name="parts[${partIndex}][notes]"]`);
     if (notes) notes.value = part.notes || "";
@@ -566,7 +637,28 @@ async function fillFormFromPattern(p) {
     if (!rowsContainer.children.length) {
       rowsContainer.appendChild(createRow(partIndex, 1, "", 1));
     }
+    // DELENS BILD
+    if (part.image) {
+      const preview = card.querySelector(".partImagePreview");
+      const removeBtn = card.querySelector(".removePartImageBtn");
+
+      const url = URL.createObjectURL(part.image);
+      preview.src = url;
+      preview.classList.remove("d-none");
+      removeBtn.classList.remove("d-none");
+
+      preview.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+
+      // Återställ state så submit-logiken fungerar
+      partImageState.set(part.part_id, {
+        blob: part.image,
+        meta: part.imageMeta,
+        removeFlag: false
+      });
+    }
   }
+
+
 
   if (!partsContainer.children.length) addPart("");
   // Öppna första delen automatiskt
@@ -671,13 +763,35 @@ form?.addEventListener("submit", async (evt) => {
       .map(([_, row]) => row)
       .filter(r => r.row_number || (r.instruction && r.instruction.trim().length));
 
+    const partId = pObj.part_id || crypto.randomUUID();
+    const imgState = partImageState.get(partId);
+
+    let partImage = null;
+    let partImageMeta = null;
+
+    if (imgState?.removeFlag) {
+      partImage = null;
+      partImageMeta = null;
+    } else if (imgState?.blob) {
+      partImage = imgState.blob;
+      partImageMeta = imgState.meta;
+    } else if (existing) {
+      const oldPart = existing.parts?.find(p => p.part_id === partId);
+      if (oldPart?.image) {
+        partImage = oldPart.image;
+        partImageMeta = oldPart.imageMeta || null;
+      }
+    }
+
     pattern.parts.push({
-      part_id: pObj.part_id || crypto.randomUUID(),
+      part_id: partId,
       name: pObj.name,
       notes: pObj.notes,
       introText: pObj.introText || "",
       outroText: pObj.outroText || "",
-      rows
+      rows,
+      image: partImage,
+      imageMeta: partImageMeta
     });
   }
 

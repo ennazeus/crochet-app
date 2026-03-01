@@ -8,10 +8,10 @@ const RUNTIME = `runtime-${APP_VERSION}`;
 const PRECACHE_URLS = [
   "./",
   "./index.html",
-  "./create_form.html",
+  "./create.html",
   "./pattern.html",
 
-  "./css/bootstrap.min.css",
+  "./vendor/bootstrap/css/bootstrap.min.css",
 
   "./js/db.js",
   "./js/utils.js",

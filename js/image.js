@@ -1,6 +1,6 @@
 export async function imageFileToResizedBlob(file, {
-  maxWidth = 1400,
-  maxHeight = 1400,
+  maxWidth = 480,
+  maxHeight = 480,
   mimeType = "image/jpeg",
   quality = 0.82
 } = {}) {
