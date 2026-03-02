@@ -122,11 +122,3 @@ window.addEventListener("offline", updateOnlineStatus);
 if (!navigator.onLine) {
   updateOnlineStatus();
 }
-
-window.addEventListener("online", updateOnlineStatus);
-window.addEventListener("offline", updateOnlineStatus);
-
-// Visa bara om vi faktiskt startar offline
-if (!navigator.onLine) {
-  updateOnlineStatus();
-}
