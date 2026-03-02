@@ -8,6 +8,42 @@ I built this app to avoid losing my place in patterns and row counting — and t
 
 ---
 
+## 📲 Install on your home screen
+
+You can install this app on your device for quick access — just like a regular app.
+
+### 📱 On iPhone / iPad (Safari)
+
+1. Open the app in Safari.
+2. Tap the **Share** button.
+3. Select **Add to Home Screen**.
+4. Confirm by tapping **Add**.
+
+The app will now appear on your home screen.
+
+---
+
+### 🤖 On Android (Chrome)
+
+1. Open the app in Chrome.
+2. Tap the **three-dot menu**.
+3. Select **Add to Home Screen** or **Install App**.
+4. Confirm.
+
+---
+
+### 💻 On Desktop (Chrome / Edge)
+
+If supported, you may see an install icon in the address bar.  
+Click it to install the app for quick access.
+
+---
+
+The app works offline once it has been opened in your browser.
+All data stays on your device.
+
+---
+
 ## ✨ Features
 
 - Save and organise your crochet patterns
