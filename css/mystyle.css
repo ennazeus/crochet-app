@@ -150,7 +150,9 @@
 .desc-items li { list-style: none; padding-left: 0; margin-bottom: 0.15rem; }
 
 .app-footer {
+  background-color: var(--app-blue-soft);
   margin-top: 4rem;
+  border-top: 1px solid rgba(159,216,255,0.35);
   padding: 2rem 1rem;
   text-align: center;
   font-size: 0.9rem;

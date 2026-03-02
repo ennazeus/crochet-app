@@ -89,16 +89,6 @@ function ensureOfflineBanner() {
 
   banner = document.createElement("div");
   banner.id = "offline-banner";
-  banner.style.position = "fixed";
-  banner.style.top = "0";
-  banner.style.left = "0";
-  banner.style.width = "100%";
-  banner.style.padding = "8px";
-  banner.style.textAlign = "center";
-  banner.style.color = "white";
-  banner.style.fontWeight = "500";
-  banner.style.zIndex = "2000";
-  banner.style.display = "none";
   document.body.appendChild(banner);
 
   return banner;
@@ -144,6 +134,3 @@ document.addEventListener("DOMContentLoaded", () => {
 function checkConnection() {
   updateOnlineStatus();
 }
-
-// Poll var 3:e sekund
-setInterval(checkConnection, 3000);
