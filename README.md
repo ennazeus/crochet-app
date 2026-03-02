@@ -8,6 +8,30 @@ I built this app to avoid losing my place in patterns and row counting — and t
 
 ---
 
+## ✨ Features
+
+- Save and organise your crochet patterns
+- Keep track of rows and progress
+- Add notes for each section
+- Works offline
+- No login required
+- All data is stored locally on your device
+
+---
+
+## 💾 How it works
+
+The app runs entirely in your browser.  
+Your patterns and progress are saved locally on your device using local storage.
+
+This means:
+- No accounts
+- No cloud sync
+- No data collection
+- No tracking
+
+---
+
 ## 📲 Install on your home screen
 
 You can install this app on your device for quick access — just like a regular app.
@@ -41,30 +65,6 @@ Click it to install the app for quick access.
 
 **The app works offline once it has been opened in your browser.
 All data stays on your device.**
-
----
-
-## ✨ Features
-
-- Save and organise your crochet patterns
-- Keep track of rows and progress
-- Add notes for each section
-- Works offline
-- No login required
-- All data is stored locally on your device
-
----
-
-## 💾 How it works
-
-The app runs entirely in your browser.  
-Your patterns and progress are saved locally on your device using local storage.
-
-This means:
-- No accounts
-- No cloud sync
-- No data collection
-- No tracking
 
 ---
 
