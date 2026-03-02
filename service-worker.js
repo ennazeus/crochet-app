@@ -1,6 +1,6 @@
 // service-worker.js
 
-const APP_VERSION = "v1.0.2"; // <-- bumpa vid deploy (v1.0.1, v1.1.0 etc)
+const APP_VERSION = "v1.0.3"; // <-- bumpa vid deploy (v1.0.1, v1.1.0 etc)
 const PRECACHE = `precache-${APP_VERSION}`;
 const RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -111,13 +111,20 @@ self.addEventListener("fetch", (event) => {
   // Bara hantera same-origin
   if (url.origin !== self.location.origin) return;
 
-  // Navigations/HTML: network-first (för snabbare uppdateringar)
- if (req.mode === "navigate") {
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      return cached || networkFirst(req);
-    })
-  );
+  // Navigationsförfrågningar: network-first (för att alltid få senaste versionen av appen)
+if (req.mode === "navigate") {
+  event.respondWith((async () => {
+    const url = new URL(req.url);
+
+    // Ta bort querystring
+    const cleanUrl = url.origin + url.pathname;
+
+    const cached = await caches.match(cleanUrl);
+    if (cached) return cached;
+
+    return networkFirst(req);
+  })());
+
   return;
 }
 
