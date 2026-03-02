@@ -63,3 +63,34 @@ export async function idbDelete(store, key) {
     req.onerror = () => reject(req.error);
   });
 }
+
+export async function idbRunTransaction(stores, mode, executor) {
+  const db = await openDb();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(stores, mode);
+
+    const wrappedStores = {};
+    for (const storeName of stores) {
+      wrappedStores[storeName] = tx.objectStore(storeName);
+    }
+
+    try {
+      executor(wrappedStores, tx);
+    } catch (err) {
+      tx.abort();
+      reject(err);
+    }
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+
+export async function idbClearAll() {
+  return idbRunTransaction(["patterns", "progress"], "readwrite", (stores) => {
+    stores.patterns.clear();
+    stores.progress.clear();
+  });
+}

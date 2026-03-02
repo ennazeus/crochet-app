@@ -33,3 +33,21 @@ export function qs(selector, root = document) {
 export function qsa(selector, root = document) {
   return Array.from(root.querySelectorAll(selector));
 }
+
+function isValidBase64(str) {
+  if (typeof str !== 'string') return false;
+  try {
+    return btoa(atob(str)) === str;
+  } catch (err) {
+    return false;
+  }
+}
+
+export function processImage(imageData) {
+  // Validate that image is a base64 string
+  if (!imageData || !isValidBase64(imageData)) {
+    console.warn('Invalid or missing image data, using placeholder');
+    return null; // or return a default placeholder image
+  }
+  return imageData;
+}

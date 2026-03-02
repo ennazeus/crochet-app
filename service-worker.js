@@ -1,6 +1,6 @@
 // service-worker.js
 
-const APP_VERSION = "v1.0.0"; // <-- bumpa vid deploy (v1.0.1, v1.1.0 etc)
+const APP_VERSION = "v1.0.1"; // <-- bumpa vid deploy (v1.0.1, v1.1.0 etc)
 const PRECACHE = `precache-${APP_VERSION}`;
 const RUNTIME = `runtime-${APP_VERSION}`;
 
@@ -10,6 +10,7 @@ const PRECACHE_URLS = [
   "./index.html",
   "./create.html",
   "./pattern.html",
+  "./offline.html",
 
   "./vendor/bootstrap/css/bootstrap.min.css",
 
@@ -31,9 +32,18 @@ const PRECACHE_URLS = [
 
 // Install: ladda app shell i cache
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(PRECACHE).then((cache) => cache.addAll(PRECACHE_URLS))
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(PRECACHE);
+
+    for (const url of PRECACHE_URLS) {
+      try {
+        await cache.add(url);
+      } catch (err) {
+        console.warn("Misslyckades att cacha:", url);
+      }
+    }
+  })());
+
   self.skipWaiting();
 });
 
@@ -89,7 +99,8 @@ async function networkFirst(req) {
     return fresh;
   } catch {
     const cached = await cache.match(req);
-    return cached || new Response("Offline", { status: 503 });
+    if (cached) return cached;
+    return caches.match("./offline.html");
   }
 }
 
@@ -120,3 +131,31 @@ self.addEventListener("fetch", (event) => {
   // Fallback: cache-first
   event.respondWith(cacheFirst(req));
 });
+
+const banner = document.getElementById("offline-banner");
+
+function updateOnlineStatus() {
+  if (!banner) return;
+
+  if (navigator.onLine) {
+    banner.textContent = "Du är online igen";
+    banner.classList.remove("d-none");
+    banner.style.background = "#198754"; // Bootstrap success
+
+    setTimeout(() => {
+      banner.classList.add("d-none");
+    }, 2000);
+
+  } else {
+    banner.textContent = "Du är offline";
+    banner.style.background = "#dc3545"; // Bootstrap danger
+    banner.classList.remove("d-none");
+  }
+}
+
+// Lyssna på förändringar
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+
+// Kör vid start
+updateOnlineStatus();

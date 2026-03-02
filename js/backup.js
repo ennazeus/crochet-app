@@ -1,14 +1,20 @@
-import { idbGetAll, idbPut } from "./db.js";
-
-console.log("backup.js laddad");
+import { idbGetAll, idbRunTransaction } from "./db.js";
+import { processImage } from "./utils.js";
 
 /* blob <-> dataURL konverteringar */
 function blobToDataUrl(blob) {
+
   return new Promise((resolve, reject) => {
+    // Om blob är null eller undefined, returnera null direkt
     if (!blob) return resolve(null);
+
+    // Skapa en FileReader för att läsa blob som dataURL
     const r = new FileReader();
+
+    // När läsningen är klar, returnera dataURL:en
     r.onload = () => resolve(String(r.result));
     r.onerror = reject;
+    // Starta läsningen av blob som dataURL
     r.readAsDataURL(blob);
   });
 }
@@ -20,6 +26,7 @@ async function dataUrlToBlob(dataUrl) {
   return await res.blob();
 }
 
+/* Funktion för att ladda ner ett JSON-objekt som en fil */
 function downloadJson(obj, filename) {
   const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -30,13 +37,16 @@ function downloadJson(obj, filename) {
   a.download = filename;
   document.body.appendChild(a);
   a.click();
-  a.remove();
-
-  // Frigör minnet som används av blob-URL:en
-  URL.revokeObjectURL(url);
+  // Rensa upp den temporära länken och URL-objektet efter nedladdningen
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 0);
 }
 
 export async function exportAll() {
+
+  // --- HÄMTA ALLA MÖNSTER OCH PROGRESS FRÅN INDEXEDDB ---
   const patterns = await idbGetAll("patterns");
   const progress = await idbGetAll("progress");
 
@@ -46,7 +56,12 @@ export async function exportAll() {
   for (const p of patterns) {
 
     // --- Huvudbild ---
-    const imageDataUrl = p.image ? await blobToDataUrl(p.image) : null;
+    let imageDataUrl = null;
+    try {
+      imageDataUrl = p.image ? await blobToDataUrl(p.image) : null;
+    } catch (e) {
+      console.warn("Failed to export image", e);
+    }
 
     // --- DELBILDER ---
     const partsExport = [];
@@ -63,17 +78,19 @@ export async function exportAll() {
       // Inkludera även eventuell imageMeta i exporten
       partsExport.push({
         ...partRest,
-        imageDataUrl: partImageDataUrl
+        imageDataUrl: partImageDataUrl,
+        imageMeta: part.imageMeta ?? null
       });
     }
 
-    // Samla allt utom själva huvudbilden och parts i rest
-    const { image, parts, ...rest } = p;
+    // Samla allt utom själva huvudbilden, parts och imageMeta i rest
+    const { image, parts, imageMeta, ...rest } = p;
 
     // Inkludera huvudbilden som dataURL och de konverterade delarna i exporten
     patternsExport.push({
       ...rest,
       imageDataUrl,
+      imageMeta: p.imageMeta ?? null,
       parts: partsExport
     });
   }
@@ -91,6 +108,7 @@ export async function exportAll() {
   downloadJson(exportObj, `crochet-app-backup-${ts}.json`);
 }
 
+
 export async function importAllFromFile(file) {
   const text = await file.text();
   const data = JSON.parse(text);
@@ -101,6 +119,102 @@ export async function importAllFromFile(file) {
 
   const patterns = Array.isArray(data.patterns) ? data.patterns : [];
   const progress = Array.isArray(data.progress) ? data.progress : [];
+
+  // Konvertera allt först (VIKTIGT – inget await i transaction)
+  const convertedPatterns = [];
+
+  for (const p of patterns) {
+    let imageBlob = null;
+
+    if (p.imageDataUrl) {
+      imageBlob = await dataUrlToBlob(p.imageDataUrl);
+    } else if (p.image) {
+      const imageData = processImage(p.image);
+      if (imageData) {
+        imageBlob = await dataUrlToBlob(imageData);
+      }
+    }
+
+    const partsImport = [];
+
+    for (const part of (p.parts || [])) {
+      let partImageBlob = null;
+
+      if (part.imageDataUrl) {
+        partImageBlob = await dataUrlToBlob(part.imageDataUrl);
+      } else if (typeof part.image === "string") {
+        const imageData = processImage(part.image);
+        if (imageData) {
+          partImageBlob = await dataUrlToBlob(imageData);
+        }
+      } else if (part.image instanceof Blob) {
+        partImageBlob = part.image;
+      }
+
+      const { imageDataUrl, ...partRest } = part;
+
+      partsImport.push({
+        ...partRest,
+        image: partImageBlob,
+        imageMeta: part.imageMeta ?? null
+      });
+    }
+
+    const { imageDataUrl, parts, ...rest } = p;
+
+    convertedPatterns.push({
+      ...rest,
+      image: imageBlob,
+      imageMeta: p.imageMeta ?? null,
+      parts: partsImport
+    });
+  }
+
+  // Kör EN atomisk transaction
+  await idbRunTransaction(
+    ["patterns", "progress"],
+    "readwrite",
+    (stores) => {
+      const { patterns: patternsStore, progress: progressStore } = stores;
+
+      // Riktig restore = rensa först
+      patternsStore.clear();
+      progressStore.clear();
+
+      for (const p of convertedPatterns) {
+        patternsStore.put(p);
+      }
+
+      for (const pr of progress) {
+        if (pr?.patternId) {
+          progressStore.put(pr);
+        }
+      }
+    }
+  );
+
+  return {
+    patternsImported: convertedPatterns.length,
+    progressImported: progress.length
+  };
+}
+
+/*export async function importAllFromFile(file) {
+  const text = await file.text();
+  const data = JSON.parse(text);
+
+  if (!data || data.schema !== "crochet-app-backup") {
+    throw new Error("Fel filformat");
+  }
+
+  if (data.version !== 2) {
+    console.warn("Importing older backup version:", data.version);
+  }
+
+  const patterns = Array.isArray(data.patterns) ? data.patterns : [];
+  const progress = Array.isArray(data.progress) ? data.progress : [];
+
+  const db = await getDb();
 
   for (const p of patterns) {
 
@@ -113,7 +227,10 @@ export async function importAllFromFile(file) {
       imageBlob = await dataUrlToBlob(p.imageDataUrl);
     } else if (p.image) {
       // gammal backup där image redan är base64
-      imageBlob = await dataUrlToBlob(p.image);
+      const imageData = processImage(p.image);
+      if (imageData) {
+        imageBlob = await dataUrlToBlob(imageData);
+      } 
     }
 
     // --- DELAR ---
@@ -130,7 +247,11 @@ export async function importAllFromFile(file) {
         partImageBlob = await dataUrlToBlob(part.imageDataUrl);
       } else if (typeof part.image === "string") {
         // gammal backup där image är base64-sträng
-        partImageBlob = await dataUrlToBlob(part.image);
+        // Validera att det är en giltig data URL innan konvertering
+        const imageData = processImage(part.image);
+        if (imageData) {
+          partImageBlob = await dataUrlToBlob(imageData);
+        }
       } else if (part.image instanceof Blob) {
         // om det redan råkar vara blob (äldre version)
         partImageBlob = part.image;
@@ -171,4 +292,4 @@ export async function importAllFromFile(file) {
     patternsImported: patterns.length,
     progressImported: progress.length
   };
-}
+}*/
