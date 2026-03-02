@@ -43,6 +43,41 @@ function renderTextBlock(text, kind = "intro") {
   `;
 }
 
+function openRelevantPart(pattern) {
+  if (!currentProgress) return;
+
+  const parts = pattern.parts || [];
+  let partToOpenKey = null;
+
+  for (const part of parts) {
+    const partKey = part.part_id || part.name;
+    const rows = (part.rows || []);
+    const progressRows = currentProgress.checked[partKey] || {};
+
+    const allChecked = rows.length > 0 && rows.every(r => {
+      const rn = String(r.row_number ?? "");
+      return !!progressRows[rn];
+    });
+
+    if (!allChecked) {
+      partToOpenKey = partKey;
+      break;
+    }
+  }
+
+  // Om alla delar är klara → öppna sista delen
+  if (!partToOpenKey && parts.length > 0) {
+    const last = parts[parts.length - 1];
+    partToOpenKey = last.part_id || last.name;
+  }
+
+  if (!partToOpenKey) return;
+
+  const collapseId = `part-body-${cssSafe(pattern.id)}-${cssSafe(partToOpenKey)}`;
+  const body = document.getElementById(collapseId);
+  if (body) body.classList.remove("d-none");
+}
+
 /**
  * Beskrivning: Rubriker i versaler -> sektioner.
  * Items läggs i två kolumner där vänster fylls först.
@@ -406,9 +441,8 @@ async function main() {
   currentProgress = await loadProgress(pattern.id);
   renderPattern(pattern);
   
-  // öppna första delen automatiskt
-  const firstBody = content.querySelector(".part-card .card-body");
-  if (firstBody) firstBody.classList.remove("d-none");
+  // öppna första delen som inte är klar automatiskt
+  openRelevantPart(pattern);
 }
 
 main();

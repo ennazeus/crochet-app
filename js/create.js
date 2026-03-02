@@ -260,21 +260,45 @@ card.innerHTML = `
   return card;
 }
 
-function addPart(defaultName = "", partId = null) {
+function addPart(defaultName = "", partId = null, open = true) {
   partIndex++;
   const card = createPartCard(partIndex, defaultName, partId || crypto.randomUUID());
+
+  if (open) {
+    // Stäng alla öppna delar
+    partsContainer.querySelectorAll(".card-body").forEach(body => {
+      body.classList.add("d-none");
+    });
+  }
+
   partsContainer.appendChild(card);
+
+  if (open) {
+    const body = card.querySelector(".card-body");
+    if (body) body.classList.remove("d-none");
+
+    // Scrolla + fokusera
+    setTimeout(() => {
+      const y = card.getBoundingClientRect().top + window.pageYOffset - 20;
+
+      window.scrollTo({
+        top: y,
+        behavior: "smooth"
+      });
+
+      // Sätt fokus i "Delens namn"
+      const nameInput = card.querySelector('input[name$="[name]"]');
+      nameInput?.focus();
+      nameInput?.select(); // markerar texten så man kan skriva direkt
+    }, 50);
+  }
 }
 
-addPartBtn?.addEventListener("click", () => addPart(""));
+addPartBtn?.addEventListener("click", () => addPart(""), true);
 
 // Init – lägg till första del
-addPart("");
+addPart("", null, false);
 
-const firstBody = partsContainer.querySelector(".card-body");
-if (firstBody) {
-  firstBody.classList.remove("d-none");
-}
 
 
 // --- Hjälpfunktioner för index och nästa varvnummer ---
@@ -612,7 +636,7 @@ async function fillFormFromPattern(p) {
   partIndex = 0;
 
   for (const part of (p.parts || [])) {
-    addPart(part.name || "", part.part_id); // <-- behåll part_id!
+    addPart(part.name || "", part.part_id, false); // <-- behåll part_id!
     const card = partsContainer.lastElementChild;
 
 
@@ -661,11 +685,6 @@ async function fillFormFromPattern(p) {
 
 
   if (!partsContainer.children.length) addPart("");
-  // Öppna första delen automatiskt
-  const firstBody = partsContainer.querySelector(".card-body");
-  if (firstBody) {
-    firstBody.classList.remove("d-none");
-  }
 
   // Bild
   currentImageBlob = p.image || null;
