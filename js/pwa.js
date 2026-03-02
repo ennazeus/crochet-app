@@ -83,42 +83,58 @@ export async function registerPWA() {
   }
 }
 
-const banner = document.getElementById("offline-banner");
+function ensureOfflineBanner() {
+  let banner = document.getElementById("offline-banner");
+  if (banner) return banner;
+
+  banner = document.createElement("div");
+  banner.id = "offline-banner";
+  banner.style.position = "fixed";
+  banner.style.top = "0";
+  banner.style.left = "0";
+  banner.style.width = "100%";
+  banner.style.padding = "8px";
+  banner.style.textAlign = "center";
+  banner.style.color = "white";
+  banner.style.fontWeight = "500";
+  banner.style.zIndex = "2000";
+  banner.style.display = "none";
+  document.body.appendChild(banner);
+
+  return banner;
+}
 
 let wasOffline = !navigator.onLine;
 
-function updateOnlineStatus(event) {
+function updateOnlineStatus() {
   const banner = ensureOfflineBanner();
 
   if (!navigator.onLine) {
     wasOffline = true;
-
     banner.textContent = "Du är offline";
     banner.style.background = "#dc3545";
-    banner.classList.remove("d-none");
+    banner.style.display = "block";
     return;
   }
 
-  // Om vi är online men aldrig varit offline → visa inget
   if (!wasOffline) return;
 
-  // Vi var offline och är nu online → visa återkoppling
   banner.textContent = "Du är online igen";
   banner.style.background = "#198754";
-  banner.classList.remove("d-none");
+  banner.style.display = "block";
 
   setTimeout(() => {
-    banner.classList.add("d-none");
+    banner.style.display = "none";
   }, 2000);
 
   wasOffline = false;
 }
 
-// Lyssna bara på faktiska förändringar
 window.addEventListener("online", updateOnlineStatus);
 window.addEventListener("offline", updateOnlineStatus);
 
-// Kör bara initial offline-visa, inte online
-if (!navigator.onLine) {
-  updateOnlineStatus();
-}
+document.addEventListener("DOMContentLoaded", () => {
+  if (!navigator.onLine) {
+    updateOnlineStatus();
+  }
+});
