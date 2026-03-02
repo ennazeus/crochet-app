@@ -1,5 +1,5 @@
 // js/pwa.js
-
+console.log("PWA JS loaded");
 function ensureUpdateToast() {
   let host = document.getElementById("pwaUpdateToastHost");
   if (host) return host;
@@ -107,6 +107,8 @@ function ensureOfflineBanner() {
 let wasOffline = !navigator.onLine;
 
 function updateOnlineStatus() {
+
+  console.log("updateOnlineStatus fired", navigator.onLine);
   const banner = ensureOfflineBanner();
 
   if (!navigator.onLine) {
@@ -138,3 +140,10 @@ document.addEventListener("DOMContentLoaded", () => {
     updateOnlineStatus();
   }
 });
+
+function checkConnection() {
+  updateOnlineStatus();
+}
+
+// Poll var 3:e sekund
+setInterval(checkConnection, 3000);
