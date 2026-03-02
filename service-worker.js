@@ -1,6 +1,6 @@
 // service-worker.js
 
-const APP_VERSION = "v1.0.9"; // <-- bumpa vid deploy (v1.0.1, v1.1.0 etc)
+const APP_VERSION = "v1.0.10"; // <-- bumpa vid deploy (v1.0.1, v1.1.0 etc)
 const PRECACHE = `precache-${APP_VERSION}`;
 const RUNTIME = `runtime-${APP_VERSION}`;
 
