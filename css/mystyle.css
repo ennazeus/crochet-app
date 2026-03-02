@@ -190,15 +190,10 @@
 }
 
 .offline-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
-  background: #dc3545;
-  color: white;
-  text-align: center;
   padding: 8px;
+  text-align: center;
+  color: white;
   font-weight: 500;
-  z-index: 2000;
-  transition: transform 0.3s ease;
+  transition: all 0.2s ease;
 }

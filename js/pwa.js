@@ -89,23 +89,22 @@ function ensureOfflineBanner() {
 
   banner = document.createElement("div");
   banner.id = "offline-banner";
-  document.body.appendChild(banner);
+  banner.className = "offline-banner d-none";
 
+  document.body.prepend(banner);
   return banner;
 }
 
-let wasOffline = !navigator.onLine;
+let wasOffline = false;
 
 function updateOnlineStatus() {
-
-  console.log("updateOnlineStatus fired", navigator.onLine);
   const banner = ensureOfflineBanner();
 
   if (!navigator.onLine) {
     wasOffline = true;
     banner.textContent = "Du är offline";
     banner.style.background = "#dc3545";
-    banner.style.display = "block";
+    banner.classList.remove("d-none");
     return;
   }
 
@@ -113,10 +112,10 @@ function updateOnlineStatus() {
 
   banner.textContent = "Du är online igen";
   banner.style.background = "#198754";
-  banner.style.display = "block";
+  banner.classList.remove("d-none");
 
   setTimeout(() => {
-    banner.style.display = "none";
+    banner.classList.add("d-none");
   }, 2000);
 
   wasOffline = false;
@@ -125,12 +124,5 @@ function updateOnlineStatus() {
 window.addEventListener("online", updateOnlineStatus);
 window.addEventListener("offline", updateOnlineStatus);
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (!navigator.onLine) {
-    updateOnlineStatus();
-  }
-});
-
-function checkConnection() {
-  updateOnlineStatus();
-}
+// Kör alltid initial check
+updateOnlineStatus();
