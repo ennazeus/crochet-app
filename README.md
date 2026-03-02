@@ -39,8 +39,8 @@ Click it to install the app for quick access.
 
 ---
 
-The app works offline once it has been opened in your browser.
-All data stays on your device.
+**The app works offline once it has been opened in your browser.
+All data stays on your device.**
 
 ---
 
