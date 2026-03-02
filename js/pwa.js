@@ -82,3 +82,31 @@ export async function registerPWA() {
     console.warn("Service worker kunde inte registreras:", err);
   }
 }
+
+const banner = document.getElementById("offline-banner");
+
+function updateOnlineStatus() {
+  if (!banner) return;
+
+  if (navigator.onLine) {
+    banner.textContent = "Du är online igen";
+    banner.classList.remove("d-none");
+    banner.style.background = "#198754"; // Bootstrap success
+
+    setTimeout(() => {
+      banner.classList.add("d-none");
+    }, 2000);
+
+  } else {
+    banner.textContent = "Du är offline";
+    banner.style.background = "#dc3545"; // Bootstrap danger
+    banner.classList.remove("d-none");
+  }
+}
+
+// Lyssna på förändringar
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+
+// Kör vid start
+updateOnlineStatus();
