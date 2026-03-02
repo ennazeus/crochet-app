@@ -1,5 +1,7 @@
 # My Crochet App 🧶
 
+🚧 This app is still evolving. Updates and improvements may be introduced over time.
+
 A simple web app for collecting crochet patterns and keeping track of your progress.
 
 I built this app to avoid losing my place in patterns and row counting — and to make crocheting a little calmer and more enjoyable.
