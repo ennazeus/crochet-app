@@ -123,9 +123,10 @@ if (!navigator.onLine) {
   updateOnlineStatus();
 }
 
-// Lyssna på förändringar
 window.addEventListener("online", updateOnlineStatus);
 window.addEventListener("offline", updateOnlineStatus);
 
-// Kör vid start
-updateOnlineStatus();
+// Visa bara om vi faktiskt startar offline
+if (!navigator.onLine) {
+  updateOnlineStatus();
+}
