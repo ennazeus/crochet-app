@@ -85,23 +85,42 @@ export async function registerPWA() {
 
 const banner = document.getElementById("offline-banner");
 
-function updateOnlineStatus() {
-  if (!banner) return;
+let wasOffline = !navigator.onLine;
 
-  if (navigator.onLine) {
-    banner.textContent = "Du är online igen";
-    banner.classList.remove("d-none");
-    banner.style.background = "#198754"; // Bootstrap success
+function updateOnlineStatus(event) {
+  const banner = ensureOfflineBanner();
 
-    setTimeout(() => {
-      banner.classList.add("d-none");
-    }, 2000);
+  if (!navigator.onLine) {
+    wasOffline = true;
 
-  } else {
     banner.textContent = "Du är offline";
-    banner.style.background = "#dc3545"; // Bootstrap danger
+    banner.style.background = "#dc3545";
     banner.classList.remove("d-none");
+    return;
   }
+
+  // Om vi är online men aldrig varit offline → visa inget
+  if (!wasOffline) return;
+
+  // Vi var offline och är nu online → visa återkoppling
+  banner.textContent = "Du är online igen";
+  banner.style.background = "#198754";
+  banner.classList.remove("d-none");
+
+  setTimeout(() => {
+    banner.classList.add("d-none");
+  }, 2000);
+
+  wasOffline = false;
+}
+
+// Lyssna bara på faktiska förändringar
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+
+// Kör bara initial offline-visa, inte online
+if (!navigator.onLine) {
+  updateOnlineStatus();
 }
 
 // Lyssna på förändringar
