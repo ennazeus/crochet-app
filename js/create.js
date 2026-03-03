@@ -174,21 +174,9 @@ card.innerHTML = `
              value="${escapeAttr(partNameValue || "")}"
              required>
     </div>
+    
     <div class="mb-3">
-      <label class="form-label">Bild (valfri)</label>
-      <input type="file"
-            class="form-control partImageInput"
-            accept="image/*">
-      <div class="form-text">Skalas ner och sparas lokalt.</div>
-
-      <img class="img-fluid rounded mt-2 d-none partImagePreview">
-      <button type="button"
-              class="btn btn-outline-danger btn-sm mt-2 d-none removePartImageBtn">
-        <i class="bi bi-trash me-1"></i>Ta bort bild
-      </button>
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Anteckningar</label>
+      <label class="form-label">Anteckningar (valfri)</label>
       <textarea class="form-control"
                 name="parts[${partIdx}][notes]"
                 rows="2"></textarea>
@@ -201,33 +189,12 @@ card.innerHTML = `
       </div>
 
       <div class="row g-2 align-items-center">
-        <div class="col-12 col-md-auto">
-          <div class="form-check">
-            <input class="form-check-input pasteExpand" type="checkbox" id="expand-${partIdx}" checked>
-            <label class="form-check-label" for="expand-${partIdx}">Expandera intervall</label>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-auto">
-          <div class="form-check">
-            <input class="form-check-input pasteAutoNumber" type="checkbox" id="autonum-${partIdx}" checked>
-            <label class="form-check-label" for="autonum-${partIdx}">Numrera rader utan “Varv …”</label>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-auto">
-          <div class="form-check">
-            <input class="form-check-input pasteSmartSplit" type="checkbox" id="smartsplit-${partIdx}" checked>
-            <label class="form-check-label" for="smartsplit-${partIdx}">Smart radbryt</label>
-          </div>
-        </div>
-
         <div class="col-12 col-md-auto ms-md-auto">
           <button type="button" class="btn btn-outline-secondary btn-sm pasteRowsExample" data-part-index="${partIdx}">
             <i class="bi bi-file-earmark-text me-1"></i>Exempel
           </button>
-          <button type="button" class="btn btn-outline-secondary btn-sm pasteRowsAppend" data-part-index="${partIdx}">
-            <i class="bi bi-plus-lg me-1"></i>Lägg till
+          <button type="button" class="btn btn-outline-secondary btn-sm pasteRowsClear" data-part-index="${partIdx}">
+            <i class="bi bi-x-circle me-1"></i>Rensa
           </button>
           <button type="button" class="btn btn-primary btn-sm pasteRowsReplace" data-part-index="${partIdx}">
             <i class="bi bi-arrow-repeat me-1"></i>Ersätt
@@ -241,16 +208,28 @@ card.innerHTML = `
       <textarea class="form-control" name="parts[${partIdx}][introText]" rows="2"
         placeholder="Börja med färg (08)"></textarea>
     </div>
-
     <div class="vstack gap-2 rowsContainer"></div>
-
     <div class="mt-3">
       <label class="form-label">Avslutande beskrivning (valfri)</label>
       <textarea class="form-control" name="parts[${partIdx}][outroText]" rows="2"
         placeholder="Avsluta arbetet och lämna en lagom lång garnände för montering...."></textarea>
     </div>
+    <div class="mb-3">
+     <div class="mt-3">
+          <label class="form-label">Bild (valfri)</label>
+          <input type="file"
+                class="form-control partImageInput"
+                accept="image/*">
+          <div class="form-text">Skalas ner och sparas lokalt.</div>
 
-  </div>
+          <img class="img-fluid rounded mt-2 d-none partImagePreview">
+          <button type="button"
+                  class="btn btn-outline-danger btn-sm mt-2 d-none removePartImageBtn">
+            <i class="bi bi-trash me-1"></i>Ta bort bild
+          </button>
+        </div>
+      </div>
+    </div>
 `;
 
   // starta med ett första varv
@@ -258,6 +237,19 @@ card.innerHTML = `
   rowsContainer.appendChild(createRow(partIdx, 1, "", 1));
 
   return card;
+}
+
+function ensurePartOpen(card) {
+  const body = card.querySelector(".card-body");
+  if (!body) return false;
+
+  const wasClosed = body.classList.contains("d-none");
+
+  if (wasClosed) {
+    body.classList.remove("d-none");
+  }
+
+  return wasClosed;
 }
 
 function addPart(defaultName = "", partId = null, open = true) {
@@ -297,7 +289,7 @@ function addPart(defaultName = "", partId = null, open = true) {
 addPartBtn?.addEventListener("click", () => addPart(""), true);
 
 // Init – lägg till första del
-addPart("", null, false);
+addPart("", null, true);
 
 
 
@@ -322,29 +314,29 @@ function getMaxRowNumber(rowsContainer) {
 // --- Parser per del (din) ---
 // Normalisera inklistrad text till en rad per "Varv …" / "Row …"
 // och försök bryta PDF-klumpar där ett nytt varv börjar mitt i raden.
-function normalizeRowsText(text, { smartSplit = true } = {}) {
+function normalizeRowsText(text) {
   if (!text) return "";
-  // ersätt icke-brytande mellanslag och normalisera bara flera mellanslag
-  let t = text.replace(/\u00A0/g, " ").replace(/[ \t]{2,}/g, " ");
 
-  if (smartSplit) {
-    // Bryt bara före "Varv/Row/Rnd X" när det följs av ett skiljetecken
-    // t.ex. "Varv 3:", "Varv 8-10:", "Row 2." osv.
-    t = t.replace(
-      /\s+((?:Varv|V|R|Row|Round|Rnd)\s*\d+(?:\s*[-–]\s*\d+)?\s*[:.)-])/gi,
-      "\n$1"
-    );
-    // om du även har engelska versioner utan "Varv", behåll ev. fler regler här
-  }
-
-  t = t
+  let t = text
+    // ersätt non-breaking space
+    .replace(/\u00A0/g, " ")
+    // normalisera radbrytningar
     .replace(/\r\n?/g, "\n")
+    // ta bort överdrivna mellanslag
+    .replace(/[ \t]{2,}/g, " ");
+
+  // Dela när nytt varv börjar mitt i rad
+  // Fungerar även utan kolon
+  t = t.replace(
+    /\s+((?:Varv|V|R|Row|Round|Rnd)\s*\d+(?:\s*[-–]\s*\d+)?\b)/gi,
+    "\n$1"
+  );
+
+  return t
     .split("\n")
     .map(s => s.trim())
     .filter(Boolean)
     .join("\n");
-
-  return t;
 }
 
 // Känner igen: "Varv 1: …", "V1-3 …", "Row 2–5: …", "Rnd 4. …"
@@ -355,20 +347,12 @@ const rowRe = /^(?:varv|v|r|row|round|rnd)\s*(\d+)\s*(?:[-–]\s*(\d+))?\s*[:.)-
 const numberRowRe = /^(\d+)\s*[:.)-]\s*(.*)$/;
 
 // Returnerar [{row_number, instruction}, ...]
-function parseRowsText(
-  text,
-  {
-    expandRanges = true,
-    autoNumberLoose = true,
-    startAt = 1,
-    smartSplit = true
-  } = {}
-) {
-  const t = normalizeRowsText(text, { smartSplit });
+function parseRowsText(text) {
+  const t = normalizeRowsText(text);
   const lines = t.split("\n");
 
   const out = [];
-  let next = startAt;
+  let next = 1;
 
   let lastRow = null;
 
@@ -404,8 +388,8 @@ function parseRowsText(
       const end = m[2] ? parseInt(m[2], 10) : null;
       const instr = (m[3] || "").trim();
 
-      if (expandRanges && end && end >= start) {
-        for (let n = start; n <= end; n++) {
+      if (end && end >= start) {
+      for (let n = start; n <= end; n++) {
           const row = { row_number: n, instruction: instr };
           out.push(row);
           lastRow = row;
@@ -446,15 +430,13 @@ function parseRowsText(
     }
 
     // efter att vi sett varv: lägg i buffer (kan bli fortsättning eller outro)
-    if (autoNumberLoose) {
-      if (lastRow) {
-        tailBuffer.push(line);
-      } else {
-        // fallback om något skulle vara konstigt
-        const row = { row_number: next++, instruction: line };
-        out.push(row);
-        lastRow = row;
-      }
+    if (lastRow) {
+      tailBuffer.push(line);
+    } else {
+      // fallback om något skulle vara konstigt
+      const row = { row_number: next++, instruction: line };
+      out.push(row);
+      lastRow = row;
     }
   }
 
@@ -482,8 +464,8 @@ partsContainer?.addEventListener("click", (e) => {
   const removeRowBtn = e.target.closest(".removeRowBtn");
   const removePartImageBtn = e.target.closest(".removePartImageBtn");
   const replaceBtn = e.target.closest(".pasteRowsReplace");
-  const appendBtn = e.target.closest(".pasteRowsAppend");
   const exampleBtn = e.target.closest(".pasteRowsExample");
+  const clearBtn = e.target.closest(".pasteRowsClear");
 
     if (removePartImageBtn) {
     const card = removePartImageBtn.closest(".card");
@@ -500,13 +482,84 @@ partsContainer?.addEventListener("click", (e) => {
     return;
   }
 
+  const pasteToggleBtn = e.target.closest('[data-bs-toggle="collapse"]');
+  if (pasteToggleBtn) {
+    const card = pasteToggleBtn.closest(".card");
+    const wasClosed = ensurePartOpen(card);
+
+    const targetSelector = pasteToggleBtn.getAttribute("data-bs-target");
+    const pasteBox = card.querySelector(targetSelector);
+
+    setTimeout(() => {
+      if (pasteBox) {
+        const y = pasteBox.getBoundingClientRect().top + window.pageYOffset - 20;
+
+        window.scrollTo({
+          top: y,
+          behavior: "smooth"
+        });
+
+        const textarea = pasteBox.querySelector(".pasteText");
+        textarea?.focus();
+      }
+    }, wasClosed ? 80 : 10);
+  }
+
   if (addRowBtn) {
     const card = addRowBtn.closest(".card");
+    const wasClosed = ensurePartOpen(card);
+
     const partIdx = card.dataset.partIndex;
     const rowsContainer = card.querySelector(".rowsContainer");
+
+    // 🔎 1. Kolla om det finns en tom instruktion
+    const instructionInputs = rowsContainer.querySelectorAll('input[name$="[instruction]"]');
+
+    let emptyRow = null;
+
+    for (const input of instructionInputs) {
+      if (!input.value.trim()) {
+        emptyRow = input.closest(".input-group");
+        break;
+      }
+    }
+
+    // Om tom rad finns → använd den
+    if (emptyRow) {
+      setTimeout(() => {
+        const y = emptyRow.getBoundingClientRect().top + window.pageYOffset - 20;
+
+        window.scrollTo({
+          top: y,
+          behavior: "smooth"
+        });
+
+        const input = emptyRow.querySelector('input[name$="[instruction]"]');
+        input?.focus();
+      }, wasClosed ? 80 : 10);
+
+      return;
+    }
+
+    // Annars skapa ny rad
     let nextIdx = getMaxRowIdx(rowsContainer) + 1;
     const nextRowNumber = getMaxRowNumber(rowsContainer) + 1;
-    rowsContainer.appendChild(createRow(partIdx, nextIdx, "", nextRowNumber));
+
+    const newRow = createRow(partIdx, nextIdx, "", nextRowNumber);
+    rowsContainer.appendChild(newRow);
+
+    setTimeout(() => {
+      const y = newRow.getBoundingClientRect().top + window.pageYOffset - 20;
+
+      window.scrollTo({
+        top: y,
+        behavior: "smooth"
+      });
+
+      const instructionInput = newRow.querySelector('input[name$="[instruction]"]');
+      instructionInput?.focus();
+    }, wasClosed ? 80 : 10);
+
     return;
   }
 
@@ -536,64 +589,61 @@ Varv 6-7: fm i alla m [11]`;
     return;
   }
 
-  if (replaceBtn || appendBtn) {
-    const btn = replaceBtn || appendBtn;
-    const card = btn.closest(".card");
+  if (clearBtn) {
+    const card = clearBtn.closest(".card");
+    const partIdx = card.dataset.partIndex;
+    const pasteBox = card.querySelector(`.pasteText[data-part-index="${partIdx}"]`);
+
+    if (pasteBox) {
+      pasteBox.value = "";
+      pasteBox.focus();
+    }
+
+    return;
+  }
+
+  if (replaceBtn) {
+    const card = replaceBtn.closest(".card");
     const partIdx = card.dataset.partIndex;
     const rowsContainer = card.querySelector(".rowsContainer");
-
     const pasteBox = card.querySelector(`.pasteText[data-part-index="${partIdx}"]`);
-    const expandCb = card.querySelector(`#expand-${partIdx}`);
-    const autoNumCb = card.querySelector(`#autonum-${partIdx}`);
-    const smartSplit = card.querySelector(`#smartsplit-${partIdx}`);
-
     const text = pasteBox?.value || "";
-    const startAt = replaceBtn ? 1 : Math.max(1, getMaxRowNumber(rowsContainer) + 1);
 
-    const parsed = parseRowsText(text, {
-      expandRanges: !!expandCb?.checked,
-      autoNumberLoose: !!autoNumCb?.checked,
-      startAt,
-      smartSplit: !!smartSplit?.checked
-    });
+    const parsed = parseRowsText(text);
 
     const introField = card.querySelector(`textarea[name="parts[${partIdx}][introText]"]`);
     const outroField = card.querySelector(`textarea[name="parts[${partIdx}][outroText]"]`);
 
-    if (replaceBtn) {
-      rowsContainer.innerHTML = "";
-      if (introField) introField.value = parsed.introText || "";
-      if (outroField) outroField.value = parsed.outroText || "";
-    }
-    if (appendBtn) {
-      if (parsed.outroText && outroField) {
-        outroField.value = (outroField.value ? (outroField.value.trim() + "\n") : "") + parsed.outroText;
-      }
+    // Rensa allt
+    rowsContainer.innerHTML = "";
 
-      // Om någon klistrar in text som börjar med lösa rader men du redan har varv:
-      // då är det ofta fortsättning på senaste varvet i listan.
-      if (parsed.introText) {
-        const lastInstrInput = rowsContainer.querySelector(
-          'input[name$="[instruction]"]:last-of-type'
-        );
-        if (lastInstrInput) {
-          lastInstrInput.value = (lastInstrInput.value ? (lastInstrInput.value + " ") : "") + parsed.introText.replace(/\n/g, " ");
-        }
-      }
-    }
+    if (introField) introField.value = parsed.introText || "";
+    if (outroField) outroField.value = parsed.outroText || "";
 
-    let nextIdx = replaceBtn ? 1 : getMaxRowIdx(rowsContainer) + 1;
+    let nextIdx = 1;
 
     if ((parsed.rows?.length || 0) === 0) {
-      if (replaceBtn && rowsContainer.children.length === 0) {
-        rowsContainer.appendChild(createRow(partIdx, nextIdx++, "", startAt));
+      rowsContainer.appendChild(createRow(partIdx, nextIdx, "", 1));
+    } else {
+      for (const r of parsed.rows) {
+        rowsContainer.appendChild(
+          createRow(partIdx, nextIdx++, r.instruction || "", r.row_number || "")
+        );
       }
-      return;
     }
 
-    for (const r of (parsed.rows || [])) {
-      rowsContainer.appendChild(createRow(partIdx, nextIdx++, r.instruction || "", r.row_number || ""));
-    }
+    // Scrolla till första nya raden
+    setTimeout(() => {
+      const firstRow = rowsContainer.querySelector(".input-group");
+      if (!firstRow) return;
+
+      const y = firstRow.getBoundingClientRect().top + window.pageYOffset - 20;
+      window.scrollTo({ top: y, behavior: "smooth" });
+
+      const input = firstRow.querySelector('input[name$="[instruction]"]');
+      input?.focus();
+    }, 50);
+
     return;
   }
 });
