@@ -194,11 +194,11 @@ body {
 }
 
 .offline-banner {
+  position: fixed;
   width: 100%;
   padding: 8px;
   text-align: center;
   color: white;
   font-weight: 500;
   transition: all 0.2s ease;
-
 }
