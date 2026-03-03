@@ -420,6 +420,16 @@ resetBtn?.addEventListener("click", async () => {
   renderPattern(currentPattern);
 });
 
+const backBtn = document.getElementById("backBtn");
+
+backBtn?.addEventListener("click", () => {
+  if (document.referrer && window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = "index.html";
+  }
+});
+
 
 async function main() {
   const id = getIdFromUrl();

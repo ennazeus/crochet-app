@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="sv" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#121212">
+    <link rel="apple-touch-icon" href="resources/icon-192.png">
+    <link rel="icon" href="/resources/favicon.png" type="image/png">
+    <link rel="stylesheet" href="./vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="./css/mystyle.css">
+    <title>Mina mönster</title>
+</head>
+
+<body>
+  <div id="offline-banner" class="offline-banner">
+    Du är offline
+  </div>
+<div class="container py-4">
+<nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
+  <div class="container">
+
+    <!-- App-namn -->
+    <a class="navbar-brand fw-semibold" href="index.html">
+      🧶 Crochet App
+    </a>
+
+    <!-- Högerdel -->
+    <div class="d-flex align-items-center gap-2 ms-auto">
+
+      <!-- Hjälp-ikon -->
+      <a href="help.html"
+         class="btn btn-outline-secondary btn-sm"
+         title="Så använder du appen">
+        <i class="bi bi-question-circle"></i>
+      </a>
+
+    </div>
+
+  </div>
+</nav>
+
+  <h1 class="mb-4">Så använder du appen</h1>
+
+  <h2>Skapa ett nytt mönster</h2>
+  <ol>
+    <li>Klicka på <em>Skapa nytt mönster</em>.</li>
+    <li>Fyll i namn och eventuell beskrivning.</li>
+    <li>Välj en bild som representerar mönstret (valfritt).</li>
+    <li>Lägg till en eller flera delar.</li>
+  </ol>
+
+  <hr>
+
+  <h2>Lägga till en del</h2>
+
+  <p>
+    Ett mönster består av en eller flera <strong>delar</strong>.
+    När du klickar på <em>Lägg till del</em> öppnas den automatiskt och du kan börja skriva direkt.
+  </p>
+
+  <p>
+    Klicka på delens titel för att öppna eller stänga den.
+  </p>
+
+  <p>
+    Varje del innehåller varv. Klicka på <i class="bi bi-plus-circle"></i> för att lägga till ett nytt varv
+    och fyll i varvnummer och instruktion.
+  </p>
+
+  <p>
+    Du kan också lägga till:
+  </p>
+  <ul>
+    <li>En bild per del</li>
+    <li>Anteckningar</li>
+    <li>Inledande beskrivning</li>
+    <li>Avslutande beskrivning</li>
+  </ul>
+
+  <hr>
+
+  <h2>Klistra in rader (snabbaste sättet)</h2>
+
+  <p>
+    För att snabbt lägga till många varv kan du klistra in text direkt från ett PDF-mönster.
+  </p>
+
+  <p>
+    Klicka på <i class="bi bi-clipboard-plus"></i> för att visa fältet
+    <em>Klistra in rader för denna del</em>.
+  </p>
+
+  <p>
+    Klistra in hela textblocket. Appen försöker automatiskt:
+  </p>
+
+  <ul>
+    <li>Dela upp texten i varv</li>
+    <li>Hantera intervall (t.ex. Varv 2–5)</li>
+    <li>Placera lösa rader i rätt varv</li>
+    <li>Skapa inledande och avslutande beskrivning</li>
+  </ul>
+
+  <p>
+    <strong>Lägg till</strong> placerar de nya varven efter befintliga varv.<br>
+    <strong>Ersätt</strong> ersätter alla befintliga varv i delen.
+  </p>
+
+  <p>
+    Klicka på <i class="bi bi-clipboard-plus"></i> igen för att dölja fältet.
+  </p>
+
+  <h4>Så fungerar tolkningen</h4>
+
+  <ul>
+    <li><strong>Varv 1:</strong> skapas som varv 1.</li>
+    <li><strong>Varv 2–5:</strong> kan delas upp till 2, 3, 4 och 5.</li>
+    <li>Rader utan "Varv" kopplas till föregående varv.</li>
+    <li>Text före första varvet blir inledande beskrivning.</li>
+    <li>Text efter sista varvet blir avslutande beskrivning.</li>
+  </ul>
+
+  <h4>Inställning</h4>
+
+  <ul>
+    <li>
+      <strong>Expandera intervall</strong> – gör "Varv 2–5" till fyra separata varv.
+    </li>
+  </ul>
+
+  <hr>
+
+  <h2>Exempel</h2>
+
+  <pre class="bg-light p-3 rounded">
+Varv 1: 6 fm i en mr [6]
+Varv 2-3: fm i alla 6 m [6]
+Byt färg
+Varv 4: öka i varje m [12]
+  </pre>
+
+  <p>Detta blir:</p>
+
+  <ul>
+    <li>Varv 1: 6 fm i en mr [6]</li>
+    <li>Varv 2: fm i alla 6 m [6]</li>
+    <li>Varv 3: fm i alla 6 m [6] Byt färg</li>
+    <li>Varv 4: öka i varje m [12]</li>
+  </ul>
+
+  <p>
+    Texten <em>Byt färg</em> kopplas automatiskt till rätt varv.
+  </p>
+
+  <hr>
+
+  <h2>Tips</h2>
+
+  <ul>
+    <li>Du kan alltid redigera varv manuellt efteråt.</li>
+    <li>Du kan ha en bild för mönstret och en bild per del.</li>
+    <li>Allt sparas lokalt i din webbläsare.</li>
+  </ul>
+</div>
+
+<footer class="app-footer">
+  <p class="footer-description">
+    En enkel app för att samla dina virk-mönster och hålla koll på var du är i arbetet. <br>
+    Allt sparas lokalt på din enhet, ingen inloggning krävs och dina mönster är alltid med dig, även offline!
+  </p>
+
+  <nav class="footer-links">
+    <a href="https://ko-fi.com/ennazeus" target="_blank" rel="noopener">
+      🧶 Stötta utvecklingen
+    </a>
+
+    <a href="https://github.com/ennazeus/crochet-app/issues/new/choose" target="_blank" rel="noopener">
+      Föreslå förbättringar eller rapportera fel
+    </a>
+    <a href="https://github.com/ennazeus/crochet-app/" target="_blank" rel="noopener">
+      Källkod på GitHub
+    </a>
+  </nav>
+
+  <p class="footer-meta">
+    © 2026 • Gratis och skapad med 💛 för virkare
+  </p>
+</footer>
+
+<script type="module" src="./js/index.js"></script>
+</body>
+</html>
