@@ -194,11 +194,20 @@ body {
 }
 
 .offline-banner {
-  position: fixed;
   width: 100%;
-  padding: 8px;
+  overflow: hidden;
+
+  height: 0;
+  padding: 0 8px;
+
   text-align: center;
   color: white;
   font-weight: 500;
-  transition: all 0.2s ease;
+
+  transition: height 0.25s ease, padding 0.25s ease;
+}
+
+.offline-banner.show {
+  height: 40px;   /* justera efter din design */
+  padding: 8px;
 }

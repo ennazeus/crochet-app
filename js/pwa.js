@@ -104,7 +104,7 @@ function updateOnlineStatus() {
     wasOffline = true;
     banner.textContent = "Du är offline";
     banner.style.background = "#dc3545";
-    banner.classList.remove("d-none");
+    banner.classList.add("show");
     return;
   }
 
@@ -112,10 +112,10 @@ function updateOnlineStatus() {
 
   banner.textContent = "Du är online igen";
   banner.style.background = "#198754";
-  banner.classList.remove("d-none");
+  banner.classList.add("show");
 
   setTimeout(() => {
-    banner.classList.add("d-none");
+    banner.classList.remove("show");
   }, 2000);
 
   wasOffline = false;
