@@ -16,9 +16,7 @@
   <link rel="stylesheet" href="./css/mystyle.css">
 </head>
 <body>
-  <div id="offline-banner" class="offline-banner">
-  Du är offline
-</div>
+
 <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-4">
   <div class="container">
 
@@ -41,13 +39,23 @@
 
   </div>
 </nav>
+  <div id="offline-banner" class="offline-banner">
+  Du är offline
+</div>
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">Skapa nytt mönster</h1>
 
-    <a href="index.html" class="btn btn-outline-secondary btn-sm">
+    <!-- Vänster -->
+    <a id="backBtn"
+      class="btn btn-outline-secondary btn-sm">
       <i class="bi bi-arrow-left me-1"></i> Tillbaka
     </a>
+
+    <!-- Höger -->
+    <h1 class="h4 mb-0 text-center">
+      Skapa nytt mönster
+    </h1>
+
   </div>
 
   <form method="post" class="needs-validation" novalidate>

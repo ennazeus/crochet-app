@@ -889,3 +889,13 @@ partsContainer?.addEventListener("input", (e) => {
   const titleSpan = card?.querySelector(".part-toggle span.fw-semibold");
   if (titleSpan) titleSpan.textContent = nameInput.value.trim() || "Ny del";
 });
+
+const backBtn = document.getElementById("backBtn");
+
+if (backBtn) {
+  if (editId) {
+    backBtn.href = `pattern.html?id=${encodeURIComponent(editId)}`;
+  } else {
+    backBtn.href = "index.html";
+  }
+}

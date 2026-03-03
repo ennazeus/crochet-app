@@ -144,7 +144,6 @@ function renderDescriptionColumns(root, description) {
         const m = item.match(/^(\d+(?:[.,]\d+)?\s*(?:nystan|st|styck|par|mm)?\b)(.*)$/i);
         if (m) {
           const strong = document.createElement("strong");
-          strong.textContent = m[1];
           li.appendChild(strong);
 
           const rest = (m[2] || "").trim();
@@ -182,19 +181,19 @@ function renderPattern(p) {
   if (p.image) imgUrl = URL.createObjectURL(p.image);
 
   content.innerHTML = `
-    <div class="mb-3">
-      <div class="d-flex justify-content-between align-items-start gap-2">
-        <h1 class="h3 mb-2">${escapeHtml(p.name || "Namnlöst mönster")}</h1>
+    <div class="mb-4 text-center">
 
-        <a class="btn btn-outline-secondary btn-sm"
-           href="create.html?edit=${encodeURIComponent(p.id)}">
-          <i class="bi bi-pencil me-1"></i> Redigera
-        </a>
-      </div>
+      <h1 class="h3 mb-3">
+        ${escapeHtml(p.name || "Namnlöst mönster")}
+      </h1>
 
       ${imgUrl ? `
-        <img src="${escapeAttr(imgUrl)}" class="mx-auto d-block pattern-image img-fluid" alt="Bild för mönster" style="max-width:100%;height:auto;">
+        <img src="${escapeAttr(imgUrl)}"
+            class="img-fluid pattern-image rounded"
+            alt="Bild för mönster"
+            style="max-width:100%; height:auto;">
       ` : ""}
+
     </div>
   `;
 
@@ -420,19 +419,12 @@ resetBtn?.addEventListener("click", async () => {
   renderPattern(currentPattern);
 });
 
-const backBtn = document.getElementById("backBtn");
-
-backBtn?.addEventListener("click", () => {
-  if (document.referrer && window.history.length > 1) {
-    window.history.back();
-  } else {
-    window.location.href = "index.html";
-  }
-});
-
-
 async function main() {
+  const editBtn = document.getElementById("editBtn");
   const id = getIdFromUrl();
+  if (editBtn && id) {
+    editBtn.href = `create.html?edit=${encodeURIComponent(id)}`;
+  }
   
   if (!id) {
     notFound.classList.remove("d-none");

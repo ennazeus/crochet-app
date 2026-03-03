@@ -11,6 +11,10 @@
   --pastel-hover: #efe9e4;
 }
 
+body {
+  margin: 0;
+}
+
 /* Samma header-styling i pattern och create */
 .part-card > .card-header {
   background: linear-gradient(
