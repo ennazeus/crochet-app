@@ -5,9 +5,17 @@
   <title>Offline</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="./vendor/bootstrap/css/bootstrap.min.css">
+   <!-- Bootstrap Icons (CDN) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+  <link rel="stylesheet" href="./css/mystyle.css">
 </head>
-<body class="container py-5 text-center">
-<nav class="navbar navbar-expand-lg app-navbar border-bottom mb-4">
+<body>
+  <div id="offline-banner" class="offline-banner">
+    Du är offline
+  </div>  
+<nav class="navbar navbar-expand-lg app-navbar border-bottom">
+
   <div class="container">
 
     <!-- App-namn -->
@@ -29,8 +37,36 @@
 
   </div>
 </nav>
-  <h1>Du är offline</h1>
-  <p>Appen fungerar, men den här sidan kunde inte hämtas just nu.</p>
-  <a href="./index.html" class="btn btn-primary mt-3">Till startsidan</a>
+<div class="container">
+    <h1>Du är offline</h1>
+    <p>Appen fungerar, men den här sidan kunde inte hämtas just nu.</p>
+    <a href="./index.html" class="btn btn-primary mt-3">Till startsidan</a>
+</div>
+
+<footer class="app-footer">
+  <div class="container">
+    <p class="footer-description">
+      En enkel app för att samla dina virk-mönster och hålla koll på var du är i arbetet. <br>
+      Allt sparas lokalt på din enhet, ingen inloggning krävs och dina mönster är alltid med dig, även offline!
+    </p>
+
+    <nav class="footer-links">
+      <a href="https://ko-fi.com/ennazeus" target="_blank" rel="noopener">
+        🧶 Stötta utvecklingen
+      </a>
+
+      <a href="https://github.com/ennazeus/crochet-app/issues/new/choose" target="_blank" rel="noopener">
+        Föreslå förbättringar eller rapportera fel
+      </a>
+      <a href="https://github.com/ennazeus/crochet-app/" target="_blank" rel="noopener">
+        Källkod på GitHub
+      </a>
+    </nav>
+
+    <p class="footer-meta">
+      © 2026 • Gratis och skapad med 💛 för virkare
+    </p>
+  </div>
+</footer>
 </body>
 </html>

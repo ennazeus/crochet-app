@@ -17,7 +17,7 @@
   <div id="offline-banner" class="offline-banner">
     Du är offline
   </div>  
-<nav class="navbar navbar-expand-lg app-navbar border-bottom mb-4">
+<nav class="navbar navbar-expand-lg app-navbar border-bottom">
 
   <div class="container">
 
@@ -40,9 +40,7 @@
 
   </div>
 </nav>
-  <div id="offline-banner" class="offline-banner">
-    Du är offline
-  </div>
+<div class="container">
   <h1 class="mb-4">Så använder du appen</h1>
 
   <h2>Skapa ett nytt mönster</h2>
@@ -55,7 +53,7 @@
 
   <hr>
 
-  <h2>Lägga till en del</h2>
+  <h3>Lägga till en del</h3>
 
   <p>
     Ett mönster består av en eller flera <strong>delar</strong>.
@@ -67,23 +65,23 @@
   </p>
 
   <p>
-    Varje del innehåller varv. Klicka på <i class="bi bi-plus-circle"></i> för att lägga till ett nytt varv
-    och fyll i varvnummer och instruktion.
+    Varje del innehåller varv. Klicka på <i class="bi bi-plus-circle"></i> för att lägga till ett 
+    nytt varv och fyll i varvnummer och instruktion.
   </p>
 
   <p>
-    Du kan också lägga till:
+    I varje del kan du också lägga till:
   </p>
   <ul>
-    <li>En bild per del</li>
     <li>Anteckningar</li>
     <li>Inledande beskrivning</li>
     <li>Avslutande beskrivning</li>
+    <li>En bild</li>
   </ul>
 
   <hr>
 
-  <h2>Klistra in rader (snabbaste sättet)</h2>
+  <h3>Klistra in rader</h3>
 
   <p>
     För att snabbt lägga till många varv kan du klistra in text direkt från ett PDF-mönster.
@@ -95,7 +93,7 @@
   </p>
 
   <p>
-    Klistra in hela textblocket. Appen försöker automatiskt:
+    Klistra in hela textblocket. När du klickar på <em>Ersätt</em> försöker appen automatiskt:
   </p>
 
   <ul>
@@ -104,11 +102,6 @@
     <li>Placera lösa rader i rätt varv</li>
     <li>Skapa inledande och avslutande beskrivning</li>
   </ul>
-
-  <p>
-    <strong>Lägg till</strong> placerar de nya varven efter befintliga varv.<br>
-    <strong>Ersätt</strong> ersätter alla befintliga varv i delen.
-  </p>
 
   <p>
     Klicka på <i class="bi bi-clipboard-plus"></i> igen för att dölja fältet.
@@ -124,17 +117,9 @@
     <li>Text efter sista varvet blir avslutande beskrivning.</li>
   </ul>
 
-  <h4>Inställning</h4>
-
-  <ul>
-    <li>
-      <strong>Expandera intervall</strong> – gör "Varv 2–5" till fyra separata varv.
-    </li>
-  </ul>
-
   <hr>
 
-  <h2>Exempel</h2>
+  <h4>Exempel</h4>
 
   <pre class="bg-light p-3 rounded">
 Varv 1: 6 fm i en mr [6]
@@ -165,32 +150,100 @@ Varv 4: öka i varje m [12]
     <li>Du kan ha en bild för mönstret och en bild per del.</li>
     <li>Allt sparas lokalt i din webbläsare.</li>
   </ul>
+
+  <hr>
+
+  <h2>Installera appen</h2>
+
+  <p>
+    Du kan installera Crochet App på din telefon eller dator så att den fungerar mer som en vanlig app.
+    När den är installerad kan du öppna den direkt från hemskärmen och använda den även offline.
+  </p>
+
+  <h3>På mobil</h3>
+
+  <ol>
+    <li>Öppna sidan i din webbläsare.</li>
+    <li>Tryck på webbläsarens meny.</li>
+    <li>Välj <em>Lägg till på hemskärmen</em> eller <em>Installera app</em>.</li>
+  </ol>
+
+  <h3>På dator</h3>
+
+  <ol>
+    <li>Öppna sidan i Chrome, Edge eller annan modern webbläsare.</li>
+    <li>Klicka på installationsikonen i adressfältet.</li>
+    <li>Välj <em>Installera</em>.</li>
+  </ol>
+
+  <p>
+    När appen är installerad öppnas den i ett eget fönster utan webbläsarens adressfält.
+  </p>
+
+  <hr>
+
+  <h2>Importera och exportera mönster</h2>
+
+  <p>
+    Eftersom alla mönster sparas lokalt på din enhet kan du exportera dem till en fil för säkerhetskopiering eller för att flytta dem till en annan enhet.
+  </p>
+
+  <h3>Exportera mönster</h3>
+
+  <ol>
+    <li>Öppna menyn för import och export.</li>
+    <li>Klicka på <em>Exportera</em>.</li>
+    <li>En fil laddas ner till din enhet.</li>
+  </ol>
+
+  <p>
+  Filen innehåller alla dina sparade mönster och din progress.
+  </p>
+
+  <h3>Importera mönster</h3>
+
+  <ol>
+    <li>Öppna menyn för import och export.</li>
+    <li>Klicka på <em>Importera</em>.</li>
+    <li>Välj en tidigare exporterad fil.</li>
+  </ol>
+
+  <p>
+  När importen är klar läggs mönstren till i din lista.
+  </p>
+
+  <p>
+    Om ett mönster redan finns kan det ersättas eller skapa en kopia beroende på innehållet i filen.
+  </p>
 </div>
 
+
 <footer class="app-footer">
-  <p class="footer-description">
-    En enkel app för att samla dina virk-mönster och hålla koll på var du är i arbetet. <br>
-    Allt sparas lokalt på din enhet, ingen inloggning krävs och dina mönster är alltid med dig, även offline!
-  </p>
+  <div class="container">
+    <p class="footer-description">
+      En enkel app för att samla dina virk-mönster och hålla koll på var du är i arbetet. <br>
+      Allt sparas lokalt på din enhet, ingen inloggning krävs och dina mönster är alltid med dig, även offline!
+    </p>
 
-  <nav class="footer-links">
-    <a href="https://ko-fi.com/ennazeus" target="_blank" rel="noopener">
-      🧶 Stötta utvecklingen
-    </a>
+    <nav class="footer-links">
+      <a href="https://ko-fi.com/ennazeus" target="_blank" rel="noopener">
+        🧶 Stötta utvecklingen
+      </a>
 
-    <a href="https://github.com/ennazeus/crochet-app/issues/new/choose" target="_blank" rel="noopener">
-      Föreslå förbättringar eller rapportera fel
-    </a>
-    <a href="https://github.com/ennazeus/crochet-app/" target="_blank" rel="noopener">
-      Källkod på GitHub
-    </a>
-  </nav>
+      <a href="https://github.com/ennazeus/crochet-app/issues/new/choose" target="_blank" rel="noopener">
+        Föreslå förbättringar eller rapportera fel
+      </a>
+      <a href="https://github.com/ennazeus/crochet-app/" target="_blank" rel="noopener">
+        Källkod på GitHub
+      </a>
+    </nav>
 
-  <p class="footer-meta">
-    © 2026 • Gratis och skapad med 💛 för virkare
-  </p>
+    <p class="footer-meta">
+      © 2026 • Gratis och skapad med 💛 för virkare
+    </p>
+  </div>
+
 </footer>
-
 <script type="module" src="./js/index.js"></script>
 </body>
 </html>

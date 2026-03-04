@@ -47,6 +47,10 @@ body{
   color:var(--text-main);
 }
 
+.container{
+  margin-top: 1.5rem;
+}
+
 .app-navbar{
 
   background: linear-gradient(
@@ -393,13 +397,40 @@ body{
 
 .footer-links a{
 
-  display:inline-block;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
-  padding:.6rem 1rem;
+  flex:1;
+
+  padding:.65rem 1rem;
 
   border-radius:10px;
 
+  border:1px solid var(--border-main);
+
+  background:var(--bg-card);
+
+  text-decoration:none;
+
+  color:var(--text-main);
+
   font-weight:500;
+
+  transition:
+    background .2s ease,
+    border-color .2s ease,
+    transform .15s ease;
+
+}
+
+.footer-links a:hover{
+
+  background:var(--accent-pink-soft);
+
+  border-color:var(--accent-pink);
+
+  transform:translateY(-1px);
 
 }
 

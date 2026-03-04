@@ -111,10 +111,16 @@ export async function exportAll() {
 
 export async function importAllFromFile(file) {
   const text = await file.text();
-  const data = JSON.parse(text);
+  let data;
+
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Filen kunde inte läsas. Den verkar vara skadad.");
+  }
 
   if (!data || data.schema !== "crochet-app-backup") {
-    throw new Error("Fel filformat");
+    throw new Error("Filen är inte en giltig backup.");
   }
 
   const patterns = Array.isArray(data.patterns) ? data.patterns : [];
@@ -124,6 +130,12 @@ export async function importAllFromFile(file) {
   const convertedPatterns = [];
 
   for (const p of patterns) {
+
+    if (!p.id) {
+      console.warn("Hoppar över mönster utan id", p);
+      continue;
+    }
+
     let imageBlob = null;
 
     if (p.imageDataUrl) {
@@ -138,6 +150,9 @@ export async function importAllFromFile(file) {
     const partsImport = [];
 
     for (const part of (p.parts || [])) {
+
+
+
       let partImageBlob = null;
 
       if (part.imageDataUrl) {
@@ -170,6 +185,8 @@ export async function importAllFromFile(file) {
     });
   }
 
+  const patternIds = new Set(convertedPatterns.map(p => p.id));
+
   // Kör EN atomisk transaction
   await idbRunTransaction(
     ["patterns", "progress"],
@@ -186,16 +203,24 @@ export async function importAllFromFile(file) {
       }
 
       for (const pr of progress) {
-        if (pr?.patternId) {
+        if (pr?.patternId && patternIds.has(pr.patternId)) {
           progressStore.put(pr);
         }
       }
     }
   );
+  let progressCount = 0;
+
+  for (const pr of progress) {
+    if (pr?.patternId) {
+      progressStore.put(pr);
+      progressCount++;
+    }
+  }
 
   return {
     patternsImported: convertedPatterns.length,
-    progressImported: progress.length
+    progressImported: progressCount
   };
 }
 
