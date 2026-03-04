@@ -289,7 +289,7 @@ function renderPattern(p) {
         </div>
       </div>
 
-      <div id="${collapseId}" class="card-body px-3 py-2 d-none">
+      <div id="${collapseId}" class="card-body px-3 d-none">
 
   <div class="row g-3">
 

@@ -1,213 +1,456 @@
+/* =====================================================
+   1. DESIGN VARIABLES
+===================================================== */
+
 :root{
-  --app-accent: #ff7fbf;                 /* lite piggare rosa */
-  --app-accent-soft: rgba(255,127,191,.14);
-  --app-blue-soft: rgba(159,216,255,.16);
 
-  --app-card: rgba(255, 255, 255, 0.92);
-  --app-border: rgba(0, 0, 0, 0.06);
-  --app-shadow: 0 10px 24px rgba(0,0,0,0.10);
-  --pastel-bg: #f7f4f1;
-  --pastel-border: #e2dcd6;
-  --pastel-hover: #efe9e4;
+  /* Accent palette */
+  --accent-pink: #ff7fbf;
+  --accent-pink-soft: rgba(255,127,191,.14);
+
+  --accent-blue: #9fd8ff;
+  --accent-blue-soft: rgba(159,216,255,.16);
+
+  --accent-mint: #a6f0d0;
+  --accent-mint-soft: rgba(190,255,230,.22);
+
+  /* Backgrounds */
+  --bg-app: #f7f4f1;
+  --bg-card: rgba(255,255,255,0.92);
+
+  /* Borders */
+  --border-main: rgba(0,0,0,0.08);
+  --border-soft: rgba(0,0,0,0.06);
+
+  /* Text */
+  --text-main: #222;
+  --text-muted: #555;
+  --text-soft: #777;
+
+  /* Footer gradient */
+  --footer-grad-1: rgba(159,216,255,0.12);
+  --footer-grad-2: rgba(159,216,255,0.20);
+
+  /* Shadows */
+  --shadow-card: 0 10px 24px rgba(0,0,0,0.10);
+
 }
 
-body {
-  margin: 0;
+
+/* =====================================================
+   2. BASE LAYOUT
+===================================================== */
+
+body{
+  margin:0;
+  background:var(--bg-app);
+  color:var(--text-main);
 }
 
-/* Samma header-styling i pattern och create */
-.part-card > .card-header {
+.app-navbar{
+
   background: linear-gradient(
     135deg,
-    rgba(255,127,191,0.22),
-    rgba(159,216,255,0.16)
+    var(--accent-pink-soft),
+    var(--accent-blue-soft),
+    var(--accent-mint-soft)
   );
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+
+  border-bottom: 1px solid var(--border-main);
+
 }
-.part-card > .card-header:hover {
-  background: linear-gradient(
+
+.app-navbar .navbar-brand{
+  font-weight:600;
+}
+
+.app-navbar .btn{
+  border-color: var(--border-soft);
+}
+
+/* =====================================================
+   3. CARDS
+===================================================== */
+
+.card{
+  border:1px solid var(--border-main);
+  box-shadow:var(--shadow-card);
+}
+
+.part-card{
+
+  border-radius:1rem;
+
+  border:1px solid var(--border-main);
+
+  box-shadow:
+    0 4px 10px rgba(0,0,0,0.05),
+    0 10px 24px rgba(0,0,0,0.06);
+
+  transition:transform .15s ease, box-shadow .15s ease;
+
+}
+
+.part-card:hover{
+
+  transform:translateY(-2px);
+
+  box-shadow:
+    0 10px 18px rgba(0,0,0,0.08),
+    0 18px 36px rgba(0,0,0,0.10);
+
+}
+
+
+/* =====================================================
+   4. CARD HEADER
+===================================================== */
+
+.part-card > .card-header{
+
+  background:linear-gradient(
     135deg,
-    rgba(255,127,191,0.28),
-    rgba(159,216,255,0.20)
+    var(--accent-pink-soft),
+    var(--accent-blue-soft)
   );
+
+  border-bottom:1px solid var(--border-main);
+
 }
 
-.part-header { cursor: pointer; user-select: none; }
-
-/* Toggle-yta */
-.part-toggle{
-  border-radius: 0.75rem;
-  padding: 0.25rem 0.5rem;
+.part-card + .part-card{
+  margin-top: 1.25rem;
 }
 
-.part-image {
-  max-width: 100%;
-  height: auto;
-  object-fit: contain;
-}
+.part-card > .card-header:hover{
 
-.part-card .form-control,
-.part-card .form-control-sm {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 0, 0, 0.12);
-}
+  background:linear-gradient(
+    135deg,
+    rgba(255,127,191,0.24),
+    rgba(159,216,255,0.22)
+  );
 
-.part-card .form-control:focus,
-.part-card .form-control-sm:focus {
-  border-color: rgba(0, 0, 0, 0.25);
-  box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.08);
 }
 
 
-/* Intro/Outro: olika pastell */
+/* =====================================================
+   5. PART HEADER (CLICKABLE)
+===================================================== */
+
+.part-header{
+  cursor:pointer;
+  user-select:none;
+}
+
+.part-header:hover{
+  opacity:.85;
+}
+
+
+/* =====================================================
+   6. CARD BODY FIXES
+===================================================== */
+
+.part-card .card-body{
+  padding-bottom: 0;
+}
+
+
+/* =====================================================
+   7. INTRO / OUTRO
+===================================================== */
+
 .part-intro{
-  background: rgba(159,216,255,0.22);
-  border: 1px solid rgba(159,216,255,0.35);
-  border-radius: 0.85rem;
+
+  background:linear-gradient(
+    135deg,
+    var(--accent-blue-soft),
+    rgba(159,216,255,0.10)
+  );
+
+  border-bottom:1px solid var(--border-soft);
+
+  margin:-0.5rem -1rem 0;
+
+  padding:.6rem 1rem;
+
+  line-height:1.25;
+
 }
+
 .part-outro{
-  background: rgba(190, 255, 230, 0.28);
-  border: 1px solid rgba(150, 220, 195, 0.45);
-  border-radius: 0.85rem;
+
+  background:var(--accent-mint-soft);
+
+  border-top:1px solid var(--border-soft);
+
+  margin:0 -1rem -1rem;
+
+  padding:.6rem 1rem;
+
 }
 
-.part-intro,
-.part-outro {
-  padding: 0 0.5rem;   /* mindre padding */
-  border-radius: 0.5rem;
-  line-height: 1.2;          /* mindre radavstånd */
+.part-intro .small,
+.part-outro .small{
+
+  font-size:.72rem;
+
+  font-weight:600;
+
+  letter-spacing:.04em;
+
+  text-transform:uppercase;
+
+  opacity:.65;
+
 }
 
-/* Om du vill färga textareas i create också */
-.part-card textarea[name$="[introText]"]{
-  background: rgba(159,216,255,0.22);
-  border: 1px solid rgba(159,216,255,0.35);
-}
-.part-card textarea[name$="[outroText]"]{
-  background: rgba(190, 255, 230, 0.28);
-  border: 1px solid rgba(150, 220, 195, 0.45);
-}
 
-/* Lite mer luft mellan part-cards */
-.part-card + .part-card { margin-top: 1rem; }
+/* =====================================================
+   8. ROWS
+===================================================== */
 
-.part-actions button { white-space: nowrap; }
+.row-item{
 
-.pattern-row {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
+  display:flex;
+
+  align-items:flex-start;
+
+  gap:.75rem;
+
+  border-color:var(--border-soft);
+
 }
 
-.pattern-title {
-  flex: 1;
-  cursor: pointer;
+.row-text{
+  flex:1;
 }
 
-.pattern-thumb {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: .5rem;
-  border: 1px solid var(--bs-border-color);
+.strike{
+  text-decoration:line-through;
+  opacity:.75;
+}
+
+.preserve-lines{
+  white-space:pre-line;
+}
+
+
+/* =====================================================
+   9. IMAGES
+===================================================== */
+
+.part-image{
+  max-width:100%;
+  height:auto;
+  object-fit:contain;
 }
 
 .pattern-image{
-  border-radius: 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-  box-shadow: 0 12px 26px rgba(0,0,0,0.14);
+
+  border-radius:1rem;
+
+  border:1px solid var(--border-main);
+
+  box-shadow:0 12px 26px rgba(0,0,0,0.12);
+
 }
 
-/* Informationsrutor i pattern */ 
-.desc-section { 
-  background: linear-gradient( 135deg, rgba(255, 158, 207, 0.12),
-                                       rgba(159, 216, 255, 0.10) ); 
-  border: 1px solid rgba(255, 255, 255, 0.08); 
-  border-radius: 0.9rem; 
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); 
-  transition: background 0.2s ease; 
-} 
+.pattern-thumb{
 
-.desc-section .section-title {
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  margin-bottom: 0.25rem;
-  text-transform: uppercase;
-  font-size: 0.9rem;
+  width:48px;
+  height:48px;
+
+  object-fit:cover;
+
+  border-radius:.5rem;
+
+  border:1px solid var(--border-main);
+
 }
 
-.desc-section:hover 
-{ 
-  background: linear-gradient( 135deg, rgba(255, 158, 207, 0.18), 
-                                       rgba(159, 216, 255, 0.15) );
+
+/* =====================================================
+   10. PATTERN LIST
+===================================================== */
+
+.pattern-row{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:.75rem;
+
 }
 
-.row-item { display:flex; align-items:flex-start; gap:.75rem; }
-.row-text { flex: 1; }
-
-.strike { text-decoration: line-through; opacity: .75; }
-.preserve-lines { white-space: pre-line; }
-
-/*.desc-section { margin-bottom: 0.75rem; }*/
-
-.desc-items .col-md-6 { padding-bottom: 0.25rem; }
-.desc-items li { list-style: none; padding-left: 0; margin-bottom: 0.15rem; }
-
-.app-footer {
-  background-color: var(--app-blue-soft);
-  margin-top: 4rem;
-  border-top: 1px solid rgba(159,216,255,0.35);
-  padding: 2rem 1rem;
-  text-align: center;
-  font-size: 0.9rem;
-  color: #555;
+.pattern-title{
+  flex:1;
+  cursor:pointer;
 }
 
-.footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  justify-content: center;
-  margin: 1.5rem 0;
+
+/* =====================================================
+   11. DESCRIPTION SECTIONS
+===================================================== */
+
+.desc-section{
+
+  background:linear-gradient(
+    135deg,
+    var(--accent-pink-soft),
+    var(--accent-blue-soft)
+  );
+
+  border:1px solid rgba(255,255,255,0.08);
+
+  border-radius:.9rem;
+
+  box-shadow:0 4px 14px rgba(0,0,0,0.25);
+
+  transition:background .2s ease;
+
 }
 
-.footer-links a {
-  display: inline-block;
-  padding: 0.55rem 0.95rem;
-  border: 1px solid var(--pastel-border);
-  border-radius: 8px;
-  background-color: var(--pastel-bg);
-  text-decoration: none;
-  font-size: 0.85rem;
-  color: inherit;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.15s ease;
+.desc-section:hover{
+
+  background:linear-gradient(
+    135deg,
+    rgba(255,158,207,0.18),
+    rgba(159,216,255,0.15)
+  );
+
 }
 
-.footer-links a:hover,
-.footer-links a:focus-visible {
-  background-color: rgba(255,127,191,0.16);
-  border-color: rgba(255,127,191,0.32);
-  transform: translateY(-1px);
+.section-title{
+
+  font-weight:700;
+
+  letter-spacing:.02em;
+
+  margin-bottom:.25rem;
+
+  text-transform:uppercase;
+
+  font-size:.9rem;
+
 }
 
-.offline-banner {
-  width: 100%;
-  overflow: hidden;
-
-  height: 0;
-  padding: 0 8px;
-
-  text-align: center;
-  color: white;
-  font-weight: 500;
-
-  transition: height 0.25s ease, padding 0.25s ease;
+.desc-items .col-md-6{
+  padding-bottom:.25rem;
 }
 
-.offline-banner.show {
-  height: 40px;   /* justera efter din design */
-  padding: 8px;
+.desc-items li{
+
+  list-style:none;
+
+  padding-left:0;
+
+  margin-bottom:.15rem;
+
+}
+
+
+/* =====================================================
+   12. FOOTER
+===================================================== */
+
+.app-footer{
+
+  background:linear-gradient(
+    180deg,
+    var(--footer-grad-1),
+    var(--footer-grad-2)
+  );
+
+  margin-top:4rem;
+
+  border-top:1px solid var(--accent-blue-soft);
+
+  padding:2rem 1rem;
+
+  text-align:center;
+
+  font-size:.9rem;
+
+  color:var(--text-muted);
+
+}
+
+.footer-links{
+
+  display:flex;
+
+  flex-wrap:wrap;
+
+  gap:.75rem;
+
+  justify-content:center;
+
+  margin:1.5rem 0;
+
+}
+
+.footer-links a{
+
+  display:inline-block;
+
+  padding:.6rem 1rem;
+
+  border-radius:10px;
+
+  font-weight:500;
+
+}
+
+
+/* =====================================================
+   13. MOBILE FOOTER
+===================================================== */
+
+@media (max-width:576px){
+
+  .footer-links{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .footer-links a{
+    width:100%;
+    text-align:center;
+  }
+
+}
+
+
+/* =====================================================
+   14. OFFLINE BANNER
+===================================================== */
+
+.offline-banner{
+
+  width:100%;
+
+  overflow:hidden;
+
+  height:0;
+
+  padding:0 8px;
+
+  text-align:center;
+
+  color:white;
+
+  font-weight:500;
+
+  transition:height .25s ease, padding .25s ease;
+
+}
+
+.offline-banner.show{
+
+  height:40px;
+
+  padding:8px;
+
 }
