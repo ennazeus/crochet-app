@@ -186,6 +186,9 @@ export async function importAllFromFile(file) {
   }
 
   const patternIds = new Set(convertedPatterns.map(p => p.id));
+  const progressToImport = progress.filter(
+    pr => pr?.patternId && patternIds.has(pr.patternId)
+  );
 
   // Kör EN atomisk transaction
   await idbRunTransaction(
@@ -202,25 +205,15 @@ export async function importAllFromFile(file) {
         patternsStore.put(p);
       }
 
-      for (const pr of progress) {
-        if (pr?.patternId && patternIds.has(pr.patternId)) {
-          progressStore.put(pr);
-        }
+      for (const pr of progressToImport) {
+        progressStore.put(pr);
       }
     }
   );
-  let progressCount = 0;
-
-  for (const pr of progress) {
-    if (pr?.patternId) {
-      progressStore.put(pr);
-      progressCount++;
-    }
-  }
-
+  
   return {
     patternsImported: convertedPatterns.length,
-    progressImported: progressCount
+    progressImported: progressToImport.length
   };
 }
 
