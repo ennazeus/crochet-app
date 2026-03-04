@@ -8,6 +8,12 @@ const form = document.querySelector("form");
 const partsContainer = document.getElementById("partsContainer");
 const addPartBtn = document.getElementById("addPartBtn");
 
+form?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+    e.preventDefault();
+  }
+});
+
 // --- Kolla om vi är i edit-läge (med ?edit=ID) ---
 const params = new URLSearchParams(window.location.search);
 const editId = params.get("edit");
@@ -239,6 +245,8 @@ card.innerHTML = `
   return card;
 }
 
+/* Om delens body är stängd, öppna den och returnera true. Om den redan var öppen, 
+   gör ingenting och returnera false. */
 function ensurePartOpen(card) {
   const body = card.querySelector(".card-body");
   if (!body) return false;
@@ -252,8 +260,16 @@ function ensurePartOpen(card) {
   return wasClosed;
 }
 
-function addPart(defaultName = "", partId = null, open = true) {
+/* Lägg till en ny del med det angivna namnet. Om open=true, 
+   stäng alla andra delar och öppna den nya. */
+function addPart(defaultName = "", partId = null, open = true, focusTarget = "part") {
+
+  if (!defaultName) {
+    defaultName = getNextPartName();
+  }
+
   partIndex++;
+
   const card = createPartCard(partIndex, defaultName, partId || crypto.randomUUID());
 
   if (open) {
@@ -269,27 +285,37 @@ function addPart(defaultName = "", partId = null, open = true) {
     const body = card.querySelector(".card-body");
     if (body) body.classList.remove("d-none");
 
-    // Scrolla + fokusera
     setTimeout(() => {
-      const y = card.getBoundingClientRect().top + window.pageYOffset - 20;
 
-      window.scrollTo({
-        top: y,
-        behavior: "smooth"
-      });
+      if (focusTarget === "part") {
+        const y = card.getBoundingClientRect().top + window.pageYOffset - 20;
 
-      // Sätt fokus i "Delens namn"
-      const nameInput = card.querySelector('input[name$="[name]"]');
-      nameInput?.focus();
-      nameInput?.select(); // markerar texten så man kan skriva direkt
+        window.scrollTo({
+          top: y,
+          behavior: "smooth"
+        });
+      }
+
+      if (focusTarget === "part") {
+        const nameInput = card.querySelector('input[name$="[name]"]');
+        nameInput?.focus();
+        nameInput?.select();
+      }
+
+      if (focusTarget === "pattern") {
+        const patternName = document.getElementById("pattern_name");
+        patternName?.focus();
+      }
+
     }, 50);
   }
 }
 
-addPartBtn?.addEventListener("click", () => addPart(""), true);
+addPartBtn?.addEventListener("click", () => addPart(""));
 
 // Init – lägg till första del
-addPart("", null, true);
+addPart("Del 1", null, true, "pattern");
+
 
 
 
@@ -309,6 +335,9 @@ function getMaxRowNumber(rowsContainer) {
     if (!isNaN(v) && v > max) max = v;
   });
   return max;
+}
+function getNextPartName() {
+  return `Del ${partIndex + 1}`;
 }
 
 // --- Parser per del (din) ---
@@ -564,7 +593,27 @@ partsContainer?.addEventListener("click", (e) => {
   }
 
   if (removePartBtn) {
-    removePartBtn.closest(".card")?.remove();
+
+    const card = removePartBtn.closest(".card");
+    const next = card.nextElementSibling;
+    const prev = card.previousElementSibling;
+
+    card.remove();
+
+    let target = next || prev;
+
+    if (!target) {
+      // om inga delar finns kvar
+      addPart();
+      return;
+    }
+
+    const body = target.querySelector(".card-body");
+    if (body) body.classList.remove("d-none");
+
+    const input = target.querySelector('input[name$="[instruction]"]');
+    input?.focus();
+
     return;
   }
 
@@ -676,6 +725,158 @@ partsContainer?.addEventListener("change", async (e) => {
 
   preview.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
 });
+
+partsContainer?.addEventListener("keydown", (e) => {
+
+  const instructionInput = e.target.closest('input[name$="[instruction]"]');
+  if (!instructionInput) return;
+
+  const row = instructionInput.closest(".input-group");
+  const card = instructionInput.closest(".card");
+  const rowsContainer = row.closest(".rowsContainer");
+  const partIdx = card.dataset.partIndex;
+
+  // -------------------------
+  // CTRL + ENTER → ny del
+  // -------------------------
+  if (e.ctrlKey && e.key === "Enter") {
+    e.preventDefault();
+
+    const partCount = partsContainer.querySelectorAll(".card").length;
+    addPart(`Del ${partCount + 1}`);
+
+    const newCard = partsContainer.lastElementChild;
+    const firstInput = newCard?.querySelector('input[name$="[instruction]"]');
+    firstInput?.focus();
+
+    return;
+  }
+
+  // -------------------------
+  // ENTER → ny rad
+  // -------------------------
+  if (e.key === "Enter") {
+    e.preventDefault();
+
+    let nextIdx = getMaxRowIdx(rowsContainer) + 1;
+    const nextRowNumber = getMaxRowNumber(rowsContainer) + 1;
+
+    const newRow = createRow(partIdx, nextIdx, "", nextRowNumber);
+    row.after(newRow);
+
+    const newInput = newRow.querySelector('input[name$="[instruction]"]');
+    newInput?.focus();
+
+    return;
+  }
+
+  // -------------------------
+  // BACKSPACE → ta bort tom rad
+  // -------------------------
+  if (e.key === "Backspace") {
+
+    if (instructionInput.value.trim() !== "") return;
+
+    if (rowsContainer.querySelectorAll(".input-group").length === 1) return;
+
+    e.preventDefault();
+
+    const prevRow = row.previousElementSibling;
+    row.remove();
+
+    const prevInput = prevRow?.querySelector('input[name$="[instruction]"]');
+    prevInput?.focus();
+  }
+
+});
+
+partsContainer?.addEventListener("blur", (e) => {
+  const instructionInput = e.target.closest('input[name$="[instruction]"]');
+  if (!instructionInput) return;
+
+  const text = instructionInput.value.trim();
+
+  // matchar t.ex. 5-8: text
+  const m = text.match(/^(\d+)\s*[-–]\s*(\d+)\s*[:.)-]?\s*(.*)$/);
+
+  if (!m) return;
+
+  const start = parseInt(m[1], 10);
+  const end = parseInt(m[2], 10);
+  const instruction = m[3].trim();
+
+  if (end < start) return;
+
+  const row = instructionInput.closest(".input-group");
+  const rowsContainer = row.closest(".rowsContainer");
+  const card = row.closest(".card");
+  const partIdx = card.dataset.partIndex;
+
+  // sätt första varvet
+  const numberInput = row.querySelector('input[name$="[row_number]"]');
+  numberInput.value = start;
+  instructionInput.value = instruction;
+
+  let insertAfter = row;
+
+  for (let n = start + 1; n <= end; n++) {
+    const nextIdx = getMaxRowIdx(rowsContainer) + 1;
+    const newRow = createRow(partIdx, nextIdx, instruction, n);
+
+    insertAfter.after(newRow);
+    insertAfter = newRow;
+  }
+
+}, true);
+
+partsContainer?.addEventListener("blur", (e) => {
+  const instructionInput = e.target.closest('input[name$="[instruction]"]');
+  if (!instructionInput) return;
+
+  const text = instructionInput.value.trim();
+
+  // matchar t.ex:
+  // 1: text
+  // 1. text
+  // 1) text
+  // 1 - text
+  const m = text.match(/^(\d+)\s*[:.)-]\s*(.*)$/);
+
+  if (!m) return;
+
+  const rowNumber = parseInt(m[1], 10);
+  const instruction = m[2].trim();
+
+  const row = instructionInput.closest(".input-group");
+  const numberInput = row.querySelector('input[name$="[row_number]"]');
+
+  if (numberInput && !numberInput.value) {
+    numberInput.value = rowNumber;
+  }
+
+  instructionInput.value = instruction;
+}, true);
+
+partsContainer?.addEventListener("blur", (e) => {
+  const instructionInput = e.target.closest('input[name$="[instruction]"]');
+  if (!instructionInput) return;
+
+  const row = instructionInput.closest(".input-group");
+  const rowsContainer = row.closest(".rowsContainer");
+
+  const numberInput = row.querySelector('input[name$="[row_number]"]');
+
+  if (!numberInput) return;
+
+  // om användaren redan satt nummer → gör inget
+  if (numberInput.value) return;
+
+  const max = getMaxRowNumber(rowsContainer);
+
+  numberInput.value = max ? max + 1 : 1;
+
+}, true);
+
 
 // --- Fill form from IndexedDB pattern (edit) ---
 async function fillFormFromPattern(p) {
