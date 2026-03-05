@@ -38,7 +38,6 @@ async function exportPattern(pattern) {
 
 export async function exportSinglePattern(patternId) {
 
-  alert("exportSinglePattern running");
   const patterns = await idbGetAll("patterns");
 
   const pattern = patterns.find(p => p.id === patternId);
