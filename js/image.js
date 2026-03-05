@@ -34,3 +34,29 @@ export async function imageFileToResizedBlob(file, {
     URL.revokeObjectURL(url);
   }
 }
+
+export function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    if (!blob) return resolve(null);
+
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+export async function dataUrlToBlob(dataUrl) {
+  if (!dataUrl) return null;
+  const res = await fetch(dataUrl);
+  return res.blob();
+}
+
+export function processImage(imageData) {
+  // Validate that image is a base64 string
+  if (!imageData || !isValidBase64(imageData)) {
+    console.warn('Invalid or missing image data, using placeholder');
+    return null; // or return a default placeholder image
+  }
+  return imageData;
+}

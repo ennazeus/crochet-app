@@ -1,5 +1,41 @@
 // js/utils.js
 
+/** Aktuell backup-version */
+export const CURRENT_BACKUP_VERSION = 2;
+
+/** Aktuell app-version */
+export const APP_VERSION = "1.0";
+
+/** Migrerar en backup till den senaste versionen */
+export function migrateBackup(data) {
+
+  let version = data.version ?? 1;
+
+  while (version < CURRENT_BACKUP_VERSION) {
+
+    switch (version) {
+
+      case 1:
+        data = migrateV1toV2(data);
+        version = 2;
+        break;
+
+      default:
+        throw new Error(`Okänd backup-version: ${version}`);
+    }
+
+  }
+
+  return data;
+}
+
+export function slugify(text) {
+  return text
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]/g, "");
+}
+
 /** HTML-escape för textinnehåll */
 export function escapeHtml(s) {
   return String(s)
@@ -43,11 +79,49 @@ function isValidBase64(str) {
   }
 }
 
-export function processImage(imageData) {
-  // Validate that image is a base64 string
-  if (!imageData || !isValidBase64(imageData)) {
-    console.warn('Invalid or missing image data, using placeholder');
-    return null; // or return a default placeholder image
-  }
-  return imageData;
+export function downloadJson(obj, filename) {
+  const blob = new Blob(
+    [JSON.stringify(obj, null, 2)],
+    { type: "application/json" }
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+
+  document.body.appendChild(a);
+  a.click();
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 0);
 }
+
+export async function shareJson(obj, filename) {
+
+  const json = JSON.stringify(obj, null, 2);
+
+  const file = new File(
+    [json],
+    filename,
+    { type: "application/json" }
+  );
+
+  // kontrollera om web share stöder filer
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+
+    await navigator.share({
+      title: "Crochet pattern",
+      text: "Shared from Crochet App",
+      files: [file]
+    });
+
+    return true;
+  }
+
+  return false;
+}
+

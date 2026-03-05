@@ -1,313 +1,297 @@
 import { idbGetAll, idbRunTransaction } from "./db.js";
-import { processImage } from "./utils.js";
+import { processImage, blobToDataUrl, dataUrlToBlob } from "./image.js";
+import { slugify, shareJson, downloadJson, migrateBackup, CURRENT_BACKUP_VERSION, APP_VERSION} from "./utils.js";
 
-/* blob <-> dataURL konverteringar */
-function blobToDataUrl(blob) {
+async function exportPart(part) {
+  const partImageDataUrl = part.image
+    ? await blobToDataUrl(part.image)
+    : null;
 
-  return new Promise((resolve, reject) => {
-    // Om blob är null eller undefined, returnera null direkt
-    if (!blob) return resolve(null);
+  const { image, ...rest } = part;
 
-    // Skapa en FileReader för att läsa blob som dataURL
-    const r = new FileReader();
-
-    // När läsningen är klar, returnera dataURL:en
-    r.onload = () => resolve(String(r.result));
-    r.onerror = reject;
-    // Starta läsningen av blob som dataURL
-    r.readAsDataURL(blob);
-  });
+  return {
+    ...rest,
+    imageDataUrl: partImageDataUrl,
+    imageMeta: part.imageMeta ?? null
+  };
 }
 
-/* dataURL -> Blob */
-async function dataUrlToBlob(dataUrl) {
-  if (!dataUrl) return null;
-  const res = await fetch(dataUrl);
-  return await res.blob();
+async function exportPattern(pattern) {
+
+  const imageDataUrl = pattern.image
+    ? await blobToDataUrl(pattern.image)
+    : null;
+
+  const parts = await Promise.all(
+    (pattern.parts || []).map(part => exportPart(part))
+  );
+
+  const { image, parts: _, ...rest } = pattern;
+
+  return {
+    ...rest,
+    imageDataUrl,
+    imageMeta: pattern.imageMeta ?? null,
+    parts
+  };
 }
 
-/* Funktion för att ladda ner ett JSON-objekt som en fil */
-function downloadJson(obj, filename) {
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
+export async function exportSinglePattern(patternId) {
 
-  // Skapa en temporär länk och klicka på den för att starta nedladdningen
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  // Rensa upp den temporära länken och URL-objektet efter nedladdningen
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-    a.remove();
-  }, 0);
+  const patterns = await idbGetAll("patterns");
+
+  const pattern = patterns.find(p => p.id === patternId);
+
+  if (!pattern) {
+    throw new Error("Mönstret kunde inte hittas.");
+  }
+
+  const patternExport = await exportPattern(pattern);
+
+  const exportObj = {
+    schema: "crochet-app-pattern",
+    version: CURRENT_BACKUP_VERSION,
+    appVersion: APP_VERSION,
+    exportedAt: new Date().toISOString(),
+    patternName: pattern.name ?? "Pattern",
+    patternId: pattern.id,
+    pattern: patternExport
+  };
+
+  const safeName = pattern.name ? slugify(pattern.name) : "pattern";
+  const filename = `crochet-pattern-${safeName}.json`;
+
+  // försök dela först
+  let shared = false;
+  try {
+    shared = await shareJson(exportObj, filename);
+  } catch (err) {
+    console.warn("Share misslyckades, använder download istället", err);
+  }
+
+  if (!shared) {
+    downloadJson(exportObj, filename);
+  }
 }
 
 export async function exportAll() {
 
-  // --- HÄMTA ALLA MÖNSTER OCH PROGRESS FRÅN INDEXEDDB ---
   const patterns = await idbGetAll("patterns");
   const progress = await idbGetAll("progress");
 
-  const patternsExport = [];
+  const patternsExport = await Promise.all(
+    patterns.map(p => exportPattern(p))
+  );
 
-  // --- KONVERTERA ALLA MÖNSTER OCH DELAR TILL DATAURLS ---
-  for (const p of patterns) {
-
-    // --- Huvudbild ---
-    let imageDataUrl = null;
-    try {
-      imageDataUrl = p.image ? await blobToDataUrl(p.image) : null;
-    } catch (e) {
-      console.warn("Failed to export image", e);
-    }
-
-    // --- DELBILDER ---
-    const partsExport = [];
-
-    // För varje del, konvertera bilden till dataURL (om den finns) och inkludera den i exporten
-    for (const part of (p.parts || [])) {
-      const partImageDataUrl = part.image
-        ? await blobToDataUrl(part.image)
-        : null;
-
-      // Samla allt utom själva bilden i partRest
-      const { image, ...partRest } = part;
-
-      // Inkludera även eventuell imageMeta i exporten
-      partsExport.push({
-        ...partRest,
-        imageDataUrl: partImageDataUrl,
-        imageMeta: part.imageMeta ?? null
-      });
-    }
-
-    // Samla allt utom själva huvudbilden, parts och imageMeta i rest
-    const { image, parts, imageMeta, ...rest } = p;
-
-    // Inkludera huvudbilden som dataURL och de konverterade delarna i exporten
-    patternsExport.push({
-      ...rest,
-      imageDataUrl,
-      imageMeta: p.imageMeta ?? null,
-      parts: partsExport
-    });
-  }
-
-  // --- SKAPA EXPORTOBJEKT OCH LADDA NER ---
   const exportObj = {
     schema: "crochet-app-backup",
-    version: 2,
+    version: CURRENT_BACKUP_VERSION,
+    appVersion: APP_VERSION,
     exportedAt: new Date().toISOString(),
     patterns: patternsExport,
     progress
   };
 
   const ts = new Date().toISOString().replace(/[:.]/g, "-");
+
   downloadJson(exportObj, `crochet-app-backup-${ts}.json`);
 }
 
+export async function previewImportFile(file) {
 
-export async function importAllFromFile(file) {
   const text = await file.text();
+
   let data;
 
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error("Filen kunde inte läsas. Den verkar vara skadad.");
+    throw new Error("Filen kunde inte läsas.");
   }
 
-  if (!data || data.schema !== "crochet-app-backup") {
+  if (!data || !data.schema) {
     throw new Error("Filen är inte en giltig backup.");
   }
+
+  if (data.schema === "crochet-app-pattern") {
+    return {
+      type: "pattern",
+      name: data.patternName ?? "Pattern"
+    };
+  }
+
+  if (data.schema === "crochet-app-backup") {
+    return {
+      type: "backup",
+      patternCount: Array.isArray(data.patterns) ? data.patterns.length : 0
+    };
+  }
+
+  throw new Error("Okänt filformat.");
+}
+
+async function importPart(part) {
+
+  let imageBlob = null;
+
+  if (part.imageDataUrl) {
+    try {
+      imageBlob = await dataUrlToBlob(part.imageDataUrl);
+    } catch {
+      console.warn("Kunde inte läsa bild i backup", part);
+    }
+  } else if (typeof part.image === "string") {
+    const imageData = processImage(part.image);
+    if (imageData) imageBlob = await dataUrlToBlob(imageData);
+  } else if (part.image instanceof Blob) {
+    imageBlob = part.image;
+  }
+
+  const { imageDataUrl, ...rest } = part;
+
+  return {
+    ...rest,
+    image: imageBlob,
+    imageMeta: part.imageMeta ?? null
+  };
+}
+
+async function importPattern(p) {
+
+  if (!p.id) {
+    console.warn("Hoppar över mönster utan id", p);
+    return null;
+  }
+
+  let imageBlob = null;
+
+  if (p.imageDataUrl) {
+    try {
+      imageBlob = await dataUrlToBlob(p.imageDataUrl);
+    } catch {
+      console.warn("Kunde inte läsa bild i backup", p);
+    }
+  } else if (p.image) {
+    const imageData = processImage(p.image);
+    if (imageData) imageBlob = await dataUrlToBlob(imageData);
+  }
+
+  const parts = await Promise.all(
+    (p.parts || []).map(part => importPart(part))
+  );
+
+  const { imageDataUrl, parts: _, ...rest } = p;
+
+  return {
+    ...rest,
+    image: imageBlob,
+    imageMeta: p.imageMeta ?? null,
+    parts
+  };
+}
+
+async function importPatternFromFile(data) {
+
+  // MIGRERA TILL SENASTE VERSION (behövs inte för nuvarande filformat)
+  // data = migratePattern(data);
+
+  if (!data.pattern) {
+    throw new Error("Filen innehåller inget mönster.");
+  }
+
+  const pattern = await importPattern(data.pattern);
+
+  if (!pattern) {
+    throw new Error("Mönstret kunde inte importeras.");
+  }
+
+  // Ge mönstret ett nytt id så att det inte krockar med 
+  // befintliga mönster vid import av enskilt mönster
+  pattern.id = crypto.randomUUID();
+
+  await idbRunTransaction(
+    ["patterns"],
+    "readwrite",
+    ({ patterns }) => {
+
+      patterns.put(pattern);
+    }
+  );
+
+  return pattern;
+}
+
+
+async function importFullBackup(data) {
+
+  // MIGRERA TILL SENASTE VERSION
+  data = migrateBackup(data);
 
   const patterns = Array.isArray(data.patterns) ? data.patterns : [];
   const progress = Array.isArray(data.progress) ? data.progress : [];
 
-  // Konvertera allt först (VIKTIGT – inget await i transaction)
-  const convertedPatterns = [];
 
-  for (const p of patterns) {
-
-    if (!p.id) {
-      console.warn("Hoppar över mönster utan id", p);
-      continue;
-    }
-
-    let imageBlob = null;
-
-    if (p.imageDataUrl) {
-      imageBlob = await dataUrlToBlob(p.imageDataUrl);
-    } else if (p.image) {
-      const imageData = processImage(p.image);
-      if (imageData) {
-        imageBlob = await dataUrlToBlob(imageData);
-      }
-    }
-
-    const partsImport = [];
-
-    for (const part of (p.parts || [])) {
-
-
-
-      let partImageBlob = null;
-
-      if (part.imageDataUrl) {
-        partImageBlob = await dataUrlToBlob(part.imageDataUrl);
-      } else if (typeof part.image === "string") {
-        const imageData = processImage(part.image);
-        if (imageData) {
-          partImageBlob = await dataUrlToBlob(imageData);
-        }
-      } else if (part.image instanceof Blob) {
-        partImageBlob = part.image;
-      }
-
-      const { imageDataUrl, ...partRest } = part;
-
-      partsImport.push({
-        ...partRest,
-        image: partImageBlob,
-        imageMeta: part.imageMeta ?? null
-      });
-    }
-
-    const { imageDataUrl, parts, ...rest } = p;
-
-    convertedPatterns.push({
-      ...rest,
-      image: imageBlob,
-      imageMeta: p.imageMeta ?? null,
-      parts: partsImport
-    });
-  }
+  const convertedPatterns = (
+    await Promise.all(patterns.map(p => importPattern(p)))
+  ).filter(Boolean);
 
   const patternIds = new Set(convertedPatterns.map(p => p.id));
+
   const progressToImport = progress.filter(
     pr => pr?.patternId && patternIds.has(pr.patternId)
   );
 
-  // Kör EN atomisk transaction
   await idbRunTransaction(
     ["patterns", "progress"],
     "readwrite",
-    (stores) => {
-      const { patterns: patternsStore, progress: progressStore } = stores;
+    ({ patterns, progress }) => {
 
-      // Riktig restore = rensa först
-      patternsStore.clear();
-      progressStore.clear();
+      patterns.clear();
+      progress.clear();
 
       for (const p of convertedPatterns) {
-        patternsStore.put(p);
+        patterns.put(p);
       }
 
       for (const pr of progressToImport) {
-        progressStore.put(pr);
+        progress.put(pr);
       }
     }
   );
-  
+
   return {
     patternsImported: convertedPatterns.length,
     progressImported: progressToImport.length
   };
 }
 
-/*export async function importAllFromFile(file) {
+export async function importAllFromFile(file) {
+
   const text = await file.text();
-  const data = JSON.parse(text);
 
-  if (!data || data.schema !== "crochet-app-backup") {
-    throw new Error("Fel filformat");
+  let data;
+
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Filen kunde inte läsas.");
   }
 
-  if (data.version !== 2) {
-    console.warn("Importing older backup version:", data.version);
+  if (!data || !data.schema) {
+    throw new Error("Filen är inte en giltig backup.");
   }
 
-  const patterns = Array.isArray(data.patterns) ? data.patterns : [];
-  const progress = Array.isArray(data.progress) ? data.progress : [];
-
-  const db = await getDb();
-
-  for (const p of patterns) {
-
-    // --- HUVUDBILD ---
-    let imageBlob = null;
-
-    // Bakomåtkompatibilitet: Först kollar vi om det finns en imageDataUrl (nytt format), 
-    // annars kollar vi om det finns en image som är base64 (gammalt format)
-    if (p.imageDataUrl) {
-      imageBlob = await dataUrlToBlob(p.imageDataUrl);
-    } else if (p.image) {
-      // gammal backup där image redan är base64
-      const imageData = processImage(p.image);
-      if (imageData) {
-        imageBlob = await dataUrlToBlob(imageData);
-      } 
-    }
-
-    // --- DELAR ---
-    const partsImport = [];
-
-    // För varje del, konvertera dataURL (om den finns) tillbaka till Blob och inkludera den i importen
-    for (const part of (p.parts || [])) {
-
-      let partImageBlob = null;
-
-      // Samma bakåtkompatibilitet för delbilder: kolla först imageDataUrl, 
-      // sedan image som base64, och till sist om det redan är en Blob (äldre version)
-      if (part.imageDataUrl) {
-        partImageBlob = await dataUrlToBlob(part.imageDataUrl);
-      } else if (typeof part.image === "string") {
-        // gammal backup där image är base64-sträng
-        // Validera att det är en giltig data URL innan konvertering
-        const imageData = processImage(part.image);
-        if (imageData) {
-          partImageBlob = await dataUrlToBlob(imageData);
-        }
-      } else if (part.image instanceof Blob) {
-        // om det redan råkar vara blob (äldre version)
-        partImageBlob = part.image;
-      }
-      
-      // Samla allt utom själva bilden i partRest
-      const { imageDataUrl, ...partRest } = part;
-
-      // Inkludera även eventuell imageMeta i importen
-      partsImport.push({
-        ...partRest,
-        image: partImageBlob,
-        imageMeta: part.imageMeta ?? null
-      });
-    }
-
-    // Samla allt utom själva huvudbilden och parts i rest
-    const { imageDataUrl, parts, ...rest } = p;
-
-    // Inkludera huvudbilden som Blob och de konverterade delarna i importen
-    await idbPut("patterns", {
-      ...rest,
-      image: imageBlob,
-      imageMeta: p.imageMeta ?? null,
-      parts: partsImport
-    });
+  if (data.version > CURRENT_BACKUP_VERSION) {
+    throw new Error("Backupen är från en nyare version av appen.");
   }
 
-  // --- IMPORTERA PROGRESS ---
-  for (const pr of progress) {
-    if (pr?.patternId) {
-      await idbPut("progress", pr);
-    }
+  if (data.schema === "crochet-app-backup") {
+    return importFullBackup(data);
   }
 
-  // --- RETURNERA ANTAL IMPORTERADE MÖNSTER OCH PROGRESS ---
-  return {
-    patternsImported: patterns.length,
-    progressImported: progress.length
-  };
-}*/
+  if (data.schema === "crochet-app-pattern") {
+    return importPatternFromFile(data);
+  }
+
+  throw new Error("Okänt filformat.");
+}

@@ -1,37 +1,73 @@
 import { registerPWA } from "./pwa.js";
 registerPWA();
-import { exportAll, importAllFromFile } from "./backup.js";
+import { exportAll, importAllFromFile, exportSinglePattern } from "./backup.js";
 import { idbGetAll, idbDelete } from "./db.js";
 import { escapeHtml, qs } from "./utils.js";
+
+const exportBackupBtn = document.getElementById("exportBackupBtn");
+const importFileInput = document.getElementById("importFile");
 
 const list = qs("#patternsList");
 const empty = qs("#emptyState");
 
-const exportBtn = qs("#exportBtn");
-const importFile = qs("#importFile");
-
-exportBtn?.addEventListener("click", async () => {
+exportBackupBtn?.addEventListener("click", async () => {
   try {
-    exportBtn.disabled = true;
+    exportBackupBtn.disabled = true;
     await exportAll();
+  } catch (err) {
+    alert(err.message);
   } finally {
-    exportBtn.disabled = false;
+    exportBackupBtn.disabled = false;
   }
 });
 
-importFile?.addEventListener("change", async () => {
-  const file = importFile.files?.[0];
+importFileInput?.addEventListener("change", async (e) => {
+
+  const file = e.target.files[0];
   if (!file) return;
 
   try {
-    const res = await importAllFromFile(file);
-    alert(`Import klar!\nMönster: ${res.patternsImported}\nProgress: ${res.progressImported}`);
-    await renderList();
+
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    if (!data || !data.schema) {
+      throw new Error("Filen är inte en giltig backup.");
+    }
+
+    if (data.schema === "crochet-app-pattern") {
+
+      const name = data.patternName ?? "Pattern";
+
+      const ok = confirm(`Import pattern "${name}"?`);
+
+      if (!ok) return;
+
+    } else if (data.schema === "crochet-app-backup") {
+
+      const count = Array.isArray(data.patterns) ? data.patterns.length : 0;
+
+      const ok = confirm(
+        `Restore backup with ${count} patterns?\n\nThis will replace all existing patterns.`
+      );
+
+      if (!ok) return;
+
+    } else {
+      throw new Error("Okänt filformat.");
+    }
+
+    await importAllFromFile(file);
+
+    alert("Import klar!");
+
+    location.reload();
+
   } catch (err) {
-    alert(`Import misslyckades: ${err.message || err}`);
-  } finally {
-    importFile.value = "";
+    alert(err.message);
   }
+
+  e.target.value = "";
 });
 
 async function renderList() {
@@ -86,6 +122,22 @@ async function renderList() {
     editBtn.title = "Redigera";
     editBtn.href = `create.html?edit=${encodeURIComponent(p.id)}`;
 
+    // Export
+    const exportBtn = document.createElement("button");
+    exportBtn.className = "btn btn-outline-secondary btn-sm";
+    exportBtn.innerHTML = `<i class="bi bi-download"></i>`;
+    exportBtn.title = "Exportera mönster";
+
+    exportBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+
+      try {
+        await exportSinglePattern(p.id);
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
     // Ta bort
     const delBtn = document.createElement("button");
     delBtn.className = "btn btn-outline-danger btn-sm";
@@ -106,6 +158,7 @@ async function renderList() {
 
     row.appendChild(title);
     row.appendChild(editBtn);
+    row.appendChild(exportBtn);
     row.appendChild(delBtn);
 
     li.appendChild(row);
