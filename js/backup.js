@@ -61,6 +61,9 @@ export async function exportSinglePattern(patternId) {
   const safeName = pattern.name ? slugify(pattern.name) : "pattern";
   const filename = `crochet-pattern-${safeName}.json`;
 
+  alert("share supported: " + !!navigator.share);
+  alert("canShare: " + navigator.canShare?.({ files: [file] }));
+
   // försök dela först
   let shared = false;
   try {
