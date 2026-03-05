@@ -110,7 +110,7 @@ function renderDescriptionColumns(root, description) {
 
   for (const sec of sections) {
     const secWrap = document.createElement("div");
-    secWrap.className = "desc-section mb-3 p-3 rounded bg-body-tertiary border";
+    secWrap.className = "desc-section mb-3 p-3";
 
     const titleEl = document.createElement("div");
     titleEl.className = "section-title";
