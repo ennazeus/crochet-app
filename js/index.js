@@ -128,17 +128,12 @@ async function renderList() {
     exportBtn.innerHTML = `<i class="bi bi-download"></i>`;
     exportBtn.title = "Exportera mönster";
 
-    exportBtn.addEventListener("click", async (e) => {
+    exportBtn.addEventListener("click", (e) => {
       e.stopPropagation();
 
-      try {
-        const data = await exportSinglePattern(p.id);
-
-        await shareJson(data.obj, data.filename);
-
-      } catch (err) {
-        alert(err.message);
-      }
+      exportSinglePattern(p.id)
+        .then(data => shareJson(data.obj, data.filename))
+        .catch(err => alert(err.message));
     });
 
     // Ta bort
