@@ -130,8 +130,12 @@ async function renderList() {
 
     exportBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
+
       try {
-        await exportSinglePattern(p.id);
+        const data = await exportSinglePattern(p.id);
+
+        await shareJson(data.obj, data.filename);
+
       } catch (err) {
         alert(err.message);
       }
@@ -167,15 +171,3 @@ async function renderList() {
 
 renderList();
 
-exportBtn.addEventListener("click", async (e) => {
-  e.stopPropagation();
-
-  try {
-    const data = await exportSinglePattern(p.id);
-
-    await shareJson(data.obj, data.filename);
-
-  } catch (err) {
-    alert(err.message);
-  }
-});
