@@ -102,6 +102,8 @@ export function downloadJson(obj, filename) {
 
 export async function shareJson(obj, filename) {
 
+  if (!navigator.share) return false;
+
   const json = JSON.stringify(obj, null, 2);
 
   const file = new File(
@@ -110,29 +112,13 @@ export async function shareJson(obj, filename) {
     { type: "application/json" }
   );
 
-  if (!navigator.share) {
-    return false;
-  }
-
   try {
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-
-      await navigator.share({
-        title: "Crochet pattern",
-        text: "Shared from Crochet App",
-        files: [file]
-      });
-
-    } else {
-
-      // fallback: dela utan fil (vissa browsers)
-      await navigator.share({
-        title: "Crochet pattern",
-        text: "Shared from Crochet App"
-      });
-
-    }
+    await navigator.share({
+      title: "Crochet pattern",
+      text: "Shared from Crochet App",
+      files: [file]
+    });
 
     return true;
 
@@ -143,4 +129,3 @@ export async function shareJson(obj, filename) {
 
   }
 }
-
