@@ -109,14 +109,13 @@ export async function shareJson(obj, filename) {
   const file = new File(
     [json],
     filename,
-    { type: "application/json" }
+    { type: "text/plain" }   // ändra denna
   );
 
   try {
 
     await navigator.share({
       title: "Crochet pattern",
-      text: "Shared from Crochet App",
       files: [file]
     });
 
