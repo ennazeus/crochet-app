@@ -61,17 +61,10 @@ export async function exportSinglePattern(patternId) {
   const safeName = pattern.name ? slugify(pattern.name) : "pattern";
   const filename = `crochet-pattern-${safeName}.json`;
 
-  // försök dela först
-  let shared = false;
-  try {
-    shared = await shareJson(exportObj, filename);
-  } catch (err) {
-    console.warn("Share misslyckades, använder download istället", err);
-  }
-
-  if (!shared) {
-    downloadJson(exportObj, filename);
-  }
+  return {
+    obj: exportObj,
+    filename
+  };
 }
 
 export async function exportAll() {
