@@ -2,7 +2,7 @@ import { registerPWA } from "./pwa.js";
 registerPWA();
 import { exportAll, importAllFromFile, exportSinglePattern } from "./backup.js";
 import { idbGetAll, idbDelete } from "./db.js";
-import { escapeHtml, qs, shareJson } from "./utils.js";
+import { escapeHtml, qs } from "./utils.js";
 
 const exportBackupBtn = document.getElementById("exportBackupBtn");
 const importFileInput = document.getElementById("importFile");
@@ -128,12 +128,14 @@ async function renderList() {
     exportBtn.innerHTML = `<i class="bi bi-download"></i>`;
     exportBtn.title = "Exportera mönster";
 
-    exportBtn.addEventListener("click", (e) => {
+    exportBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
 
-      exportSinglePattern(p.id)
-        .then(data => shareJson(data.obj, data.filename))
-        .catch(err => alert(err.message));
+      try {
+        await exportSinglePattern(p.id);
+      } catch (err) {
+        alert(err.message);
+      }
     });
 
     // Ta bort

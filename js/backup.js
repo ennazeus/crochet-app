@@ -1,6 +1,6 @@
 import { idbGetAll, idbRunTransaction } from "./db.js";
 import { processImage, blobToDataUrl, dataUrlToBlob } from "./image.js";
-import { slugify, shareJson, downloadJson, migrateBackup, CURRENT_BACKUP_VERSION, APP_VERSION} from "./utils.js";
+import { slugify, downloadJson, migrateBackup, CURRENT_BACKUP_VERSION, APP_VERSION} from "./utils.js";
 
 async function exportPart(part) {
   const partImageDataUrl = part.image
@@ -61,10 +61,7 @@ export async function exportSinglePattern(patternId) {
   const safeName = pattern.name ? slugify(pattern.name) : "pattern";
   const filename = `crochet-pattern-${safeName}.json`;
 
-  return {
-    obj: exportObj,
-    filename
-  };
+  downloadJson(exportObj, filename);
 }
 
 export async function exportAll() {

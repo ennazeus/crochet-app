@@ -100,37 +100,3 @@ export function downloadJson(obj, filename) {
   }, 0);
 }
 
-export async function shareJson(obj, filename) {
-
-  if (!navigator.share) {
-    alert("navigator.share saknas");
-    return false;
-  }
-
-  const json = JSON.stringify(obj, null, 2);
-
-  const file = new File(
-    [json],
-    filename,
-    { type: "application/json" }
-  );
-
-  try {
-
-    await navigator.share({
-      title: "Crochet pattern",
-      files: [file]
-    });
-
-    alert("share lyckades");
-    return true;
-
-  } catch (err) {
-
-    alert("share error: " + err.message);
-    console.error(err);
-
-    return false;
-
-  }
-}
