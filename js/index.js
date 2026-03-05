@@ -130,7 +130,7 @@ async function renderList() {
 
     exportBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
-
+      alert("clicked export");
       try {
         await exportSinglePattern(p.id);
       } catch (err) {
