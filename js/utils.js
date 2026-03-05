@@ -110,18 +110,37 @@ export async function shareJson(obj, filename) {
     { type: "application/json" }
   );
 
-  // kontrollera om web share stöder filer
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-
-    await navigator.share({
-      title: "Crochet pattern",
-      text: "Shared from Crochet App",
-      files: [file]
-    });
-
-    return true;
+  if (!navigator.share) {
+    return false;
   }
 
-  return false;
+  try {
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+
+      await navigator.share({
+        title: "Crochet pattern",
+        text: "Shared from Crochet App",
+        files: [file]
+      });
+
+    } else {
+
+      // fallback: dela utan fil (vissa browsers)
+      await navigator.share({
+        title: "Crochet pattern",
+        text: "Shared from Crochet App"
+      });
+
+    }
+
+    return true;
+
+  } catch (err) {
+
+    console.warn("Share failed:", err);
+    return false;
+
+  }
 }
 
