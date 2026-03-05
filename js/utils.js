@@ -102,14 +102,17 @@ export function downloadJson(obj, filename) {
 
 export async function shareJson(obj, filename) {
 
-  if (!navigator.share) return false;
+  if (!navigator.share) {
+    alert("navigator.share saknas");
+    return false;
+  }
 
   const json = JSON.stringify(obj, null, 2);
 
   const file = new File(
     [json],
     filename,
-    { type: "text/plain" }   // ändra denna
+    { type: "application/json" }
   );
 
   try {
@@ -119,11 +122,14 @@ export async function shareJson(obj, filename) {
       files: [file]
     });
 
+    alert("share lyckades");
     return true;
 
   } catch (err) {
 
-    console.warn("Share failed:", err);
+    alert("share error: " + err.message);
+    console.error(err);
+
     return false;
 
   }
