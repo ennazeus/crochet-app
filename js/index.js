@@ -2,7 +2,7 @@ import { registerPWA } from "./pwa.js";
 registerPWA();
 import { exportAll, importAllFromFile, exportSinglePattern } from "./backup.js";
 import { idbGetAll, idbDelete } from "./db.js";
-import { escapeHtml, qs } from "./utils.js";
+import { escapeHtml, qs, shareJson } from "./utils.js";
 
 const exportBackupBtn = document.getElementById("exportBackupBtn");
 const importFileInput = document.getElementById("importFile");
