@@ -101,6 +101,8 @@ export function downloadJson(obj, filename) {
 }
 
 export async function shareJson(obj, filename) {
+  alert("share supported: " + !!navigator.share);
+alert("canShare: " + navigator.canShare?.({ files: [file] }));
 
   if (!navigator.share) return false;
 
