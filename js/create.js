@@ -191,7 +191,12 @@ card.innerHTML = `
     <div class="collapse mb-3" id="paste-${partIdx}">
       <div class="mb-2">
         <label class="form-label">Klistra in rader för denna del</label>
-        <textarea class="form-control pasteText" data-part-index="${partIdx}" rows="6"></textarea>
+        <textarea class="form-control pasteText" data-part-index="${partIdx}" rows="6"
+            placeholder="Tips: Ett varv måste starta på ny rad och börja med 'Varv', 'V', 'Row', 'Rnd' eller 'Round', t.ex.:
+
+Varv 1: ...
+Varv 2: ...
+Varv 3-6: ..."></textarea>
       </div>
 
       <div class="row g-2 align-items-center">
@@ -354,13 +359,6 @@ function normalizeRowsText(text) {
     // ta bort överdrivna mellanslag
     .replace(/[ \t]{2,}/g, " ");
 
-  // Dela när nytt varv börjar mitt i rad
-  // Fungerar även utan kolon
-  t = t.replace(
-    /\s+((?:Varv|V|R|Row|Round|Rnd)\s*\d+(?:\s*[-–]\s*\d+)?\b)/gi,
-    "\n$1"
-  );
-
   return t
     .split("\n")
     .map(s => s.trim())
@@ -369,7 +367,7 @@ function normalizeRowsText(text) {
 }
 
 // Känner igen: "Varv 1: …", "V1-3 …", "Row 2–5: …", "Rnd 4. …"
-const rowRe = /^(?:varv|v|r|row|round|rnd|rnds|rounds)\s*(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:\{([^}]*)\})?\s*[:.)-]?\s*(.*)$/i;
+const rowRe = /^(?:varv|v|r|row|rows|round|rnd|rnds|rounds)\s*(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:\{([^}]*)\})?\s*[:.)-]?\s*(.*)$/i;
 
 // Extra: rader som bara börjar med ett nummer, t.ex. "1: 6 fm"
 // eller "1) 6 fm", "1 - 6 fm"
@@ -539,6 +537,7 @@ partsContainer?.addEventListener("click", (e) => {
 
         const textarea = pasteBox.querySelector(".pasteText");
         textarea?.focus();
+
       }
     }, wasClosed ? 80 : 10);
   }
