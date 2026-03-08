@@ -6,28 +6,7 @@ export const CURRENT_BACKUP_VERSION = 2;
 /** Aktuell app-version */
 export const APP_VERSION = "1.0";
 
-/** Migrerar en backup till den senaste versionen */
-export function migrateBackup(data) {
 
-  let version = data.version ?? 1;
-
-  while (version < CURRENT_BACKUP_VERSION) {
-
-    switch (version) {
-
-      case 1:
-        data = migrateV1toV2(data);
-        version = 2;
-        break;
-
-      default:
-        throw new Error(`Okänd backup-version: ${version}`);
-    }
-
-  }
-
-  return data;
-}
 
 export function slugify(text) {
   return text

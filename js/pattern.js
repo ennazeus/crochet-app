@@ -171,6 +171,24 @@ function ensureProgressBucket(partKey) {
   if (!currentProgress.checked[partKey]) currentProgress.checked[partKey] = {};
 }
 
+
+function getPartProgress(part, partKey) {
+  const rows = part.rows || [];
+  const total = rows.length;
+  if (total === 0) return { total: 0, done: 0, percent: 0 };
+
+  const bucket = currentProgress.checked[partKey] || {};
+  let done = 0;
+
+  for (const r of rows) {
+    const rn = String(r.row_number ?? "");
+    if (bucket[rn]) done++;
+  }
+
+  const percent = Math.round((done / total) * 100);
+  return { total, done, percent };
+}
+
 function renderPattern(p) {
   currentPattern = p;
 
@@ -222,6 +240,8 @@ function renderPattern(p) {
     const partKey = part.part_id || partName;
     ensureProgressBucket(partKey);
 
+    const prog = getPartProgress(part, partKey);
+
     const card = document.createElement("div");
     card.className = "card part-card";
 
@@ -263,31 +283,54 @@ function renderPattern(p) {
     const outroHtml = renderTextBlock(part.outroText, "outro");
 
     card.innerHTML = `
-      <div class="card-header d-flex align-items-start gap-2">
-        <div class="flex-grow-1 part-header" role="button" data-toggle-part="${escapeAttr(collapseId)}">
-          <div class="fw-semibold">
-            <i class="bi bi-diagram-3 me-2"></i>${escapeHtml(partName)}
-            <i class="bi bi-chevron-down ms-2 text-body-secondary"></i>
-          </div>
-          ${part.notes ? `<div class="small text-body-secondary mt-1 preserve-lines">${escapeHtml(part.notes)}</div>` : ""}
-        </div>
+      <div class="card-header d-flex align-items-center gap-3">
 
-        <div class="part-actions d-flex gap-2">
-          <button type="button"
-                  class="btn btn-outline-success btn-sm part-checkall"
-                  data-partkey="${escapeAttr(partKey)}"
-                  title="Markera alla varv i delen">
-            <i class="bi bi-check2-square"></i>
-          </button>
+      <!-- TITEL -->
+      <div class="flex-grow-1 part-header"
+          role="button"
+          data-toggle-part="${escapeAttr(collapseId)}">
 
-          <button type="button"
-                  class="btn btn-outline-secondary btn-sm part-uncheckall"
-                  data-partkey="${escapeAttr(partKey)}"
-                  title="Avmarkera alla varv i delen">
-            <i class="bi bi-square"></i>
-          </button>
+        <div class="fw-semibold">
+          <i class="bi bi-diagram-3 me-2"></i>${escapeHtml(partName)}
+          <i class="bi bi-chevron-down ms-2 text-body-secondary"></i>
         </div>
       </div>
+
+      <!-- PROGRESS (kompakt, högerjusterad) -->
+      <div class="part-progress d-flex align-items-center gap-2">
+
+        <span class="progress-text">
+          ${prog.done}/${prog.total}
+        </span>
+
+        <div class="progress part-progressbar">
+          <div class="progress-bar"
+              role="progressbar"
+              style="width:${prog.percent}%"
+              data-progressbar="${escapeAttr(partKey)}">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="part-actions d-flex gap-2">
+        <button type="button"
+                class="btn btn-outline-success btn-sm part-checkall"
+                data-partkey="${escapeAttr(partKey)}"
+                title="Markera alla varv i delen">
+          <i class="bi bi-check2-square"></i>
+        </button>
+
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm part-uncheckall"
+                data-partkey="${escapeAttr(partKey)}"
+                title="Avmarkera alla varv i delen">
+          <i class="bi bi-square"></i>
+        </button>
+      </div>
+
+    </div>
 
       <div id="${collapseId}" class="card-body px-3 d-none">
 
@@ -326,6 +369,34 @@ function renderPattern(p) {
   }
 }
 
+function updatePartProgressUI(partKey) {
+  if (!currentPattern) return;
+
+  const part = (currentPattern.parts || [])
+    .find(p => (p.part_id || p.name) === partKey);
+  if (!part) return;
+
+  const prog = getPartProgress(part, partKey);
+
+  const bar = document.querySelector(
+    `[data-progressbar="${CSS.escape(partKey)}"]`
+  );
+  if (!bar) return;
+
+  // uppdatera bredd
+  bar.style.width = prog.percent + "%";
+
+  // färg när klar
+  bar.classList.toggle("bg-success", prog.percent === 100);
+
+  // uppdatera text
+  const text = bar
+  ?.closest(".part-progress")
+  ?.querySelector(".progress-text");
+
+  if (text) text.textContent = `${prog.done} / ${prog.total}`;
+}
+
 content.addEventListener("click", async (e) => {
   // Toggle part-body
   const toggle = e.target.closest("[data-toggle-part]");
@@ -360,6 +431,8 @@ content.addEventListener("click", async (e) => {
     });
 
     await saveProgress(currentProgress);
+    updatePartProgressUI(partKey);
+
     return;
   }
 
@@ -386,6 +459,8 @@ content.addEventListener("click", async (e) => {
     });
 
     await saveProgress(currentProgress);
+    updatePartProgressUI(partKey);
+
     return;
   }
 });
@@ -405,6 +480,7 @@ content.addEventListener("change", async (e) => {
   // uppdatera strike direkt
   const label = cb.closest(".row-item")?.querySelector("label.row-text");
   if (label) label.classList.toggle("strike", cb.checked);
+  updatePartProgressUI(partKey);
 });
 
 resetBtn?.addEventListener("click", async () => {

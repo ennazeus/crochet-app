@@ -1,6 +1,29 @@
 import { idbGetAll, idbRunTransaction } from "./db.js";
 import { processImage, blobToDataUrl, dataUrlToBlob } from "./image.js";
-import { slugify, downloadJson, migrateBackup, CURRENT_BACKUP_VERSION, APP_VERSION} from "./utils.js";
+import { slugify, downloadJson, CURRENT_BACKUP_VERSION, APP_VERSION} from "./utils.js";
+
+/** Migrerar en backup till den senaste versionen */
+function migrateBackup(data) {
+
+  let version = data.version ?? 1;
+
+  while (version < CURRENT_BACKUP_VERSION) {
+
+    switch (version) {
+
+      case 1:
+        data = migrateV1toV2(data);
+        version = 2;
+        break;
+
+      default:
+        throw new Error(`Okänd backup-version: ${version}`);
+    }
+
+  }
+
+  return data;
+}
 
 async function exportPart(part) {
   const partImageDataUrl = part.image

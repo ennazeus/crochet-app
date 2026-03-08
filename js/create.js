@@ -8,6 +8,7 @@ const form = document.querySelector("form");
 const partsContainer = document.getElementById("partsContainer");
 const addPartBtn = document.getElementById("addPartBtn");
 
+// Förhindra att Enter i formuläret skickar det (förutom i textarea)
 form?.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
     e.preventDefault();
@@ -63,10 +64,16 @@ function showPreviewFromBlob(blob) {
   preview.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
 }
 
+// När en bild väljs i filväljaren, processa den och visa förhandsvisningen. 
+// Spara också blob och metadata i state.
 imgInput?.addEventListener("change", async () => {
+
+  // Om ingen fil valts (t.ex. om användaren avbryter filväljaren) => gör inget
   const file = imgInput.files?.[0];
   if (!file) return;
 
+  // När en ny fil väljs, återställ "ta bort bild"-flaggan 
+  // (om den var satt) och uppdatera förhandsvisningen
   removeImageFlag = false;
   const { blob, meta } = await imageFileToResizedBlob(file, {
     maxWidth: 480,
@@ -80,6 +87,7 @@ imgInput?.addEventListener("change", async () => {
   showPreviewFromBlob(blob);
 });
 
+// När "ta bort bild"-knappen klickas, sätt flagga och uppdatera förhandsvisningen
 removeImageBtn?.addEventListener("click", () => {
   removeImageFlag = true;
   currentImageBlob = null;
@@ -92,24 +100,17 @@ removeImageBtn?.addEventListener("click", () => {
 let partIndex = 0;
 
 const partImageState = new Map();
-// key = part_id
-// value = { blob, meta, removeFlag }
 
-
-
-function escapeAttr(s) {
-  return String(s)
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
-
+/// Skapar ett nytt varv-input med rätt namn och index, 
+// och returnerar det som ett DOM-element.
 function createRow(partIdx, rowIdx, instructionValue = "", rowNumberValue = "") {
   const row = document.createElement("div");
   row.className = "input-group";
   row.dataset.rowIndex = rowIdx;
 
+  // Namnformat: 
+  // parts[PART_IDX][rows][ROW_IDX][instruction] och 
+  // parts[PART_IDX][rows][ROW_IDX][row_number]
   row.innerHTML = `
     <span class="input-group-text">Varv</span>
     <input type="number" min="1" class="form-control" name="parts[${partIdx}][rows][${rowIdx}][row_number]"
@@ -123,6 +124,7 @@ function createRow(partIdx, rowIdx, instructionValue = "", rowNumberValue = "") 
   return row;
 }
 
+// Skapar ett nytt del-kort med rätt namn och index, och returnerar det som ett DOM-element.
 function createPartCard(partIdx, partNameValue = "", partId = crypto.randomUUID()) {
   const collapseId = `part-body-${partIdx}`;
   const card = document.createElement("div");
@@ -250,8 +252,8 @@ Varv 3-6: ..."></textarea>
   return card;
 }
 
-/* Om delens body är stängd, öppna den och returnera true. Om den redan var öppen, 
-   gör ingenting och returnera false. */
+// Om delens body är stängd, öppna den och returnera true. 
+// Om den redan var öppen, gör ingenting och returnera false.
 function ensurePartOpen(card) {
   const body = card.querySelector(".card-body");
   if (!body) return false;
@@ -265,8 +267,8 @@ function ensurePartOpen(card) {
   return wasClosed;
 }
 
-/* Lägg till en ny del med det angivna namnet. Om open=true, 
-   stäng alla andra delar och öppna den nya. */
+// Lägg till en ny del med det angivna namnet. 
+// Om open=true, stäng alla andra delar och öppna den nya. 
 function addPart(defaultName = "", partId = null, open = true, focusTarget = "part") {
 
   if (!defaultName) {

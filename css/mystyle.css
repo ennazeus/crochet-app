@@ -396,3 +396,38 @@ body{
   padding:8px;
 
 }
+
+/* Wrapper */
+.part-progress {
+  min-width: 140px;        /* hindrar hopp */
+  justify-content: flex-end;
+}
+
+/* Text */
+.progress-text {
+  font-size: 0.75rem;
+  color: #6c757d;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Själva baren */
+.part-progressbar {
+  width: 90px;             /* smalare */
+  height: 20px;            /* högre */
+  background: #e9ecef;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* Fyllnad */
+.part-progressbar .progress-bar {
+  background: linear-gradient(90deg, #7aa7ff, #5b8def);
+  border-radius: 999px;
+  transition: width 220ms ease;
+}
+
+/* Klar */
+.part-progressbar .progress-bar.bg-success {
+  background: linear-gradient(90deg, #43c463, #2ea44f);
+}
