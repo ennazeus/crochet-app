@@ -257,14 +257,17 @@ function renderPattern(p) {
         const idAttr = `cb-${cssSafe(p.id)}-${cssSafe(partKey)}-${cssSafe(rnKey)}`;
 
         return `
-          <div class="row-item py-2 border-top">
-            <div class="form-check">
-              <input class="form-check-input row-check" type="checkbox"
+          <div class="row-item py-2 border-top"
+            title="Vänsterklick: markera klar • Högerklick: ångra senaste">
+            <input class="form-check-input row-check" type="checkbox"
                      id="${idAttr}"
                      data-part="${escapeAttr(partKey)}"
                      data-row="${escapeAttr(rnKey)}"
                      ${checked ? "checked" : ""}>
-            </div>
+
+            <span class="row-icon">
+              <i class="bi ${checked ? "bi-check-circle-fill" : "bi-circle"}"></i>
+            </span>
             <label class="row-text ${checked ? "strike" : ""}" for="${idAttr}">
               <div>
                 <span class="fw-semibold">Varv ${escapeHtml(rnKey)}:</span>
@@ -304,7 +307,7 @@ function renderPattern(p) {
         </span>
 
         <div class="progress part-progressbar">
-          <div class="progress-bar"
+          <div class="progress-bar ${prog.percent === 100 ? "bg-success" : ""}"
               role="progressbar"
               style="width:${prog.percent}%"
               data-progressbar="${escapeAttr(partKey)}">
@@ -358,6 +361,15 @@ function renderPattern(p) {
     `;
 
     content.appendChild(card);
+
+    card.querySelectorAll(".row-check").forEach(cb => {
+      if (cb.checked) {
+        const rowEl = cb.closest(".row-item");
+        setRowDone(rowEl, true);
+        updateNextRowHighlight(card);
+      }
+    });
+
     // Släpp objectURL för part-bild
     if (partImgUrl) {
       const img = card.querySelector("img.part-image");
@@ -397,6 +409,47 @@ function updatePartProgressUI(partKey) {
   if (text) text.textContent = `${prog.done} / ${prog.total}`;
 }
 
+function getOrderedRowCheckboxes(card) {
+  return [...card.querySelectorAll("input.row-check")]
+    .sort((a, b) => Number(a.dataset.row) - Number(b.dataset.row));
+}
+
+function getFirstUnchecked(cbs) {
+  return cbs.find(cb => !cb.checked);
+}
+
+function getLastChecked(cbs) {
+  return [...cbs].reverse().find(cb => cb.checked);
+}
+
+function setRowDone(rowEl, isDone) {
+  const icon = rowEl.querySelector(".row-icon i");
+  const label = rowEl.querySelector(".row-text");
+
+  rowEl.classList.toggle("done", isDone);
+  label?.classList.toggle("strike", isDone);
+
+  if (icon) {
+    icon.className = isDone
+      ? "bi bi-check-circle-fill"
+      : "bi bi-circle";
+  }
+}
+
+function updateNextRowHighlight(card) {
+  const rows = [...card.querySelectorAll(".row-item")];
+  rows.forEach(r => r.classList.remove("next"));
+
+  const firstUndone = rows.find(r => !r.classList.contains("done"));
+  if (firstUndone) {
+    firstUndone.classList.add("next");
+    firstUndone.scrollIntoView({
+      block: "center",
+      behavior: "smooth"
+    });
+  }
+}
+
 content.addEventListener("click", async (e) => {
   // Toggle part-body
   const toggle = e.target.closest("[data-toggle-part]");
@@ -426,13 +479,13 @@ content.addEventListener("click", async (e) => {
       const rowNo = cb.dataset.row;
       currentProgress.checked[partKey][rowNo] = true;
 
-      const label = cb.closest(".row-item")?.querySelector("label.row-text");
-      if (label) label.classList.add("strike");
+      const rowEl = cb.closest(".row-item");
+      setRowDone(rowEl, true);
+      updateNextRowHighlight(card);
     });
 
     await saveProgress(currentProgress);
     updatePartProgressUI(partKey);
-
     return;
   }
 
@@ -454,33 +507,76 @@ content.addEventListener("click", async (e) => {
       const rowNo = cb.dataset.row;
       currentProgress.checked[partKey][rowNo] = false;
 
-      const label = cb.closest(".row-item")?.querySelector("label.row-text");
-      if (label) label.classList.remove("strike");
+      const rowEl = cb.closest(".row-item");
+      setRowDone(rowEl, false);
+      updateNextRowHighlight(card);
     });
 
     await saveProgress(currentProgress);
     updatePartProgressUI(partKey);
-
     return;
   }
 });
 
-content.addEventListener("change", async (e) => {
-  const cb = e.target.closest(".row-check");
-  if (!cb || !currentPattern || !currentProgress) return;
+content.addEventListener("click", async (e) => {
+  const row = e.target.closest(".row-item");
+  if (!row || !currentPattern || !currentProgress) return;
+
+  const cb = row.querySelector("input.row-check");
+  if (!cb) return;
+
+  e.preventDefault(); // stoppa native checkbox-toggle
+
+  const card = row.closest(".card");
+  const cbs = getOrderedRowCheckboxes(card);
+  if (!cbs.length) return;
 
   const partKey = cb.dataset.part;
-  const rowNo = cb.dataset.row;
-
   ensureProgressBucket(partKey);
-  currentProgress.checked[partKey][rowNo] = cb.checked;
+
+  const firstUnchecked = getFirstUnchecked(cbs);
+  if (!firstUnchecked) return;
+
+  // Om användaren klickade exakt rätt rad → använd den
+  const target = (cb === firstUnchecked) ? cb : firstUnchecked;
+
+  target.checked = true;
+  currentProgress.checked[partKey][target.dataset.row] = true;
+
+  const rowEl = target.closest(".row-item");
+  setRowDone(rowEl, true);
+  updateNextRowHighlight(card);
 
   await saveProgress(currentProgress);
-
-  // uppdatera strike direkt
-  const label = cb.closest(".row-item")?.querySelector("label.row-text");
-  if (label) label.classList.toggle("strike", cb.checked);
   updatePartProgressUI(partKey);
+});
+
+content.addEventListener("contextmenu", async (e) => {
+  const row = e.target.closest(".row-item");
+  if (!row || !currentPattern || !currentProgress) return;
+
+  e.preventDefault(); // stoppa webbläsarens meny
+
+  const card = row.closest(".card");
+  const cbs = getOrderedRowCheckboxes(card);
+  if (!cbs.length) return;
+
+  const partKey = cbs[0].dataset.part;
+  ensureProgressBucket(partKey);
+
+  const lastChecked = getLastChecked(cbs);
+  if (!lastChecked) return;
+
+  // avmarkera senaste klara
+  lastChecked.checked = false;
+  currentProgress.checked[partKey][lastChecked.dataset.row] = false;
+
+  const rowEl = lastChecked.closest(".row-item");
+  setRowDone(rowEl, false);
+
+  await saveProgress(currentProgress);
+  updatePartProgressUI(partKey);
+  updateNextRowHighlight(card);
 });
 
 resetBtn?.addEventListener("click", async () => {

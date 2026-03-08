@@ -192,18 +192,28 @@ body{
   align-items:flex-start;
   gap:.75rem;
   border-color:var(--border-soft);
-  padding-left: 5px;
-  transition: background .15s ease;
+  padding:10px 6px;
+  transition: background .15s ease, border-color .15s ease;
+  cursor:pointer;
+  border-left:3px solid transparent;
+  user-select:none;
 }
 
+/* Hover */
 .row-item:hover{
   background: var(--row-hover);
-  border-left: 3px solid var(--row-hover-strong);
+  border-left-color: var(--row-hover-strong);
 }
 
-
+/* Text */
 .row-text{
   flex:1;
+}
+
+.row-check{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
 }
 
 .strike{
@@ -211,10 +221,41 @@ body{
   opacity:.75;
 }
 
+/* ⭐ NÄSTA VARV — viktigaste visuella signalen */
+.row-item.next{
+  background:rgba(46,164,79,.08);
+  border-left-color:#2ea44f;
+}
+
+.row-item.next .row-icon{
+  color:#2ea44f;
+}
+
+/* Extra tydlighet på hover för nästa */
+.row-item.next:hover{
+  background:rgba(46,164,79,.14);
+}
+
 .preserve-lines{
   white-space:pre-line;
 }
 
+
+.row-icon{
+  width:22px;
+  flex-shrink:0;
+  font-size:1.2rem;
+  color:#adb5bd;
+  transition: transform .12s ease, color .15s ease;
+}
+
+.row-item.done .row-icon{
+  color:#2ea44f;
+}
+
+.row-item:active .row-icon{
+  transform:scale(.9);
+}
 
 /* =====================================================
    9. IMAGES
@@ -431,3 +472,4 @@ body{
 .part-progressbar .progress-bar.bg-success {
   background: linear-gradient(90deg, #43c463, #2ea44f);
 }
+
