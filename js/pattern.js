@@ -43,6 +43,9 @@ function renderTextBlock(text, kind = "intro") {
   `;
 }
 
+/** 
+ * Öppna första delen som inte är helt klar, eller sista delen om alla är klara
+ */
 function openRelevantPart(pattern) {
   if (!currentProgress) return;
 
@@ -75,7 +78,12 @@ function openRelevantPart(pattern) {
 
   const collapseId = `part-body-${cssSafe(pattern.id)}-${cssSafe(partToOpenKey)}`;
   const body = document.getElementById(collapseId);
-  if (body) body.classList.remove("d-none");
+  if (body) {
+    body.classList.remove("d-none");
+
+    const card = body.closest(".card");
+    if (card) updateNextRowHighlight(card);
+  }
 }
 
 /**
@@ -441,10 +449,19 @@ function updateNextRowHighlight(card) {
   rows.forEach(r => r.classList.remove("next"));
 
   const firstUndone = rows.find(r => !r.classList.contains("done"));
+
   if (firstUndone) {
+    // Ofärdig del → scrolla till nästa varv
     firstUndone.classList.add("next");
     firstUndone.scrollIntoView({
       block: "center",
+      behavior: "smooth"
+    });
+  } else {
+    // Färdig del → scrolla till rubrik
+    const header = card.querySelector(".card-header");
+    header?.scrollIntoView({
+      block: "start",
       behavior: "smooth"
     });
   }
@@ -456,7 +473,16 @@ content.addEventListener("click", async (e) => {
   if (toggle) {
     const id = toggle.getAttribute("data-toggle-part");
     const body = document.getElementById(id);
-    if (body) body.classList.toggle("d-none");
+    if (!body) return;
+
+    const isOpening = body.classList.contains("d-none");
+    body.classList.toggle("d-none");
+
+    // Scroll bara när man öppnar
+    if (isOpening) {
+      const card = body.closest(".card");
+      if (card) updateNextRowHighlight(card);
+    }
     return;
   }
 
