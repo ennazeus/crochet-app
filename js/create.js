@@ -3,6 +3,8 @@ registerPWA();
 import { idbGet, idbPut } from "./db.js";
 import { imageFileToResizedBlob } from "./image.js";
 
+import { escapeAttr } from "./utils.js";
+
 // --- Elementreferenser ---
 const form = document.querySelector("form");
 const partsContainer = document.getElementById("partsContainer");
