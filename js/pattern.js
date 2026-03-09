@@ -307,7 +307,7 @@ function renderPattern(p) {
         </span>
 
         <div class="progress part-progressbar">
-          <div class="progress-bar ${prog.percent === 100 ? "bg-success" : ""}"
+          <div class="progress-bar ${prog.percent === 100 ? "is-complete" : ""}"
               role="progressbar"
               style="width:${prog.percent}%"
               data-progressbar="${escapeAttr(partKey)}">
@@ -399,7 +399,7 @@ function updatePartProgressUI(partKey) {
   bar.style.width = prog.percent + "%";
 
   // färg när klar
-  bar.classList.toggle("bg-success", prog.percent === 100);
+  bar.classList.toggle("is-complete", prog.percent === 100);
 
   // uppdatera text
   const text = bar

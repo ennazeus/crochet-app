@@ -8,6 +8,7 @@
   --accent-pink: #ff7fbf;
   --accent-pink-soft: rgba(255,127,191,.14);
   --accent-pink-soft-strong: rgba(255,127,191,.24);
+  --accent-pink-tint: #fff0f7;
 
   --accent-blue: #9fd8ff;
   --accent-blue-soft: rgba(159,216,255,.16);
@@ -15,6 +16,10 @@
 
   --accent-mint: #a6f0d0;
   --accent-mint-soft: rgba(190,255,230,.22);
+  --mint-soft-1: #dff7ee;
+  --mint-soft-2: #c9f1e2;
+  --mint-soft-border: #a6e3cc;
+  --mint-complete: #bfead9;
 
   /* Backgrounds */
   --bg-app: #f7f4f1;
@@ -199,11 +204,11 @@ body{
   user-select:none;
 }
 
-/* Hover */
+/* Hover 
 .row-item:hover{
   background: var(--row-hover);
   border-left-color: var(--row-hover-strong);
-}
+}*/
 
 /* Text */
 .row-text{
@@ -389,11 +394,9 @@ body{
 }
 
 .footer-links a:hover{
-  background:var(--accent-pink-soft);
-  border-color:var(--accent-pink);
-  transform:translateY(-1px);
+  background: #fff;
+  border-color: var(--accent-pink);
 }
-
 
 /* =====================================================
    13. MOBILE FOOTER
@@ -438,6 +441,10 @@ body{
 
 }
 
+/* =====================================================
+   15. Progress bar 
+===================================================== */
+
 /* Wrapper */
 .part-progress {
   min-width: 140px;        /* hindrar hopp */
@@ -456,20 +463,22 @@ body{
 .part-progressbar {
   width: 90px;             /* smalare */
   height: 20px;            /* högre */
-  background: #e9ecef;
+  background: var(--accent-mint-soft);
+  border: 1px solid var(--mint-soft-border);
   border-radius: 999px;
   overflow: hidden;
 }
 
 /* Fyllnad */
 .part-progressbar .progress-bar {
-  background: linear-gradient(90deg, #7aa7ff, #5b8def);
-  border-radius: 999px;
-  transition: width 220ms ease;
+  background-color: var(--mint-soft-2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+
 }
 
 /* Klar */
-.part-progressbar .progress-bar.bg-success {
-  background: linear-gradient(90deg, #43c463, #2ea44f);
+.part-progressbar .is-complete {
+  background-color: var(--mint-complete);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
 }
 
