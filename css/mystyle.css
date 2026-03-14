@@ -143,11 +143,27 @@ body{
 .part-header{
   cursor:pointer;
   user-select:none;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
 }
+
 
 .part-header:hover{
   opacity:.85;
 }
+
+.part-notes{
+  border-left:3px solid var(--border-soft);
+  padding-left:.5rem;
+  font-size:.85rem;
+  font-weight:500;
+  color:var(--bs-secondary-color);
+  margin-top:2px;
+
+  line-height:1.25;
+}
+
 
 
 /* =====================================================

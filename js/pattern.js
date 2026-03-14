@@ -294,17 +294,22 @@ function renderPattern(p) {
     const outroHtml = renderTextBlock(part.outroText, "outro");
 
     card.innerHTML = `
-      <div class="card-header d-flex align-items-center gap-3">
+      <div class="card-header d-flex align-items-start gap-3">
 
-      <!-- TITEL -->
+      <!-- TITEL + NOTES -->
       <div class="flex-grow-1 part-header"
           role="button"
           data-toggle-part="${escapeAttr(collapseId)}">
 
         <div class="fw-semibold">
-          <i class="bi bi-diagram-3 me-2"></i>${escapeHtml(partName)}
+          ${escapeHtml(partName)}
           <i class="bi bi-chevron-down ms-2 text-body-secondary"></i>
         </div>
+
+        ${part.notes ? `
+          <div class="part-notes preserve-lines">${escapeHtml(part.notes).trim()}</div>
+        ` : ""}
+
       </div>
 
       <!-- PROGRESS (kompakt, högerjusterad) -->

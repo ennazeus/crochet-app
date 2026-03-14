@@ -4,7 +4,7 @@
 export const CURRENT_BACKUP_VERSION = 2;
 
 /** Aktuell app-version */
-export const APP_VERSION = "1.0";
+export const APP_VERSION = "1.1.0";
 
 
 

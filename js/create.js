@@ -135,13 +135,13 @@ function createPartCard(partIdx, partNameValue = "", partId = crypto.randomUUID(
   card.dataset.partId = partId;
 
 card.innerHTML = `
-  <div class="card-header d-flex align-items-center gap-2 part-header">
+  <div class="card-header d-flex align-items-center">
 
-    <!-- Klickbar titel-yta -->
+    <!-- Titel / toggle -->
     <div class="d-flex align-items-center gap-2 flex-grow-1 part-toggle"
-         role="button"
-         data-toggle-part="${collapseId}"
-         title="Fäll ihop/ut">
+        role="button"
+        data-toggle-part="${collapseId}"
+        title="Fäll ihop/ut">
 
       <i class="bi bi-diagram-3"></i>
 
@@ -152,29 +152,33 @@ card.innerHTML = `
       <i class="bi bi-chevron-down text-body-secondary"></i>
     </div>
 
-    <!-- DINA KNAPPAR (utanför toggle-ytan) -->
-    <button type="button" class="btn btn-outline-primary btn-sm addRowBtn">
-      <i class="bi bi-plus-circle"></i>
-    </button>
+    <!-- KNAPP-GRUPP -->
+    <div class="d-flex gap-2 flex-shrink-0">
 
-    <button type="button" class="btn btn-outline-secondary btn-sm"
-            data-bs-toggle="collapse"
-            data-bs-target="#paste-${partIdx}">
-      <i class="bi bi-clipboard-plus"></i>
-    </button>
+      <button type="button" class="btn btn-outline-primary btn-sm addRowBtn">
+        <i class="bi bi-plus-circle"></i>
+      </button>
 
-    <button type="button"
-            class="btn btn-outline-danger btn-sm removePartBtn">
-      <i class="bi bi-trash"></i>
-    </button>
+      <button type="button"
+              class="btn btn-outline-secondary btn-sm"
+              data-bs-toggle="collapse"
+              data-bs-target="#paste-${partIdx}">
+        <i class="bi bi-clipboard-plus"></i>
+      </button>
 
-    <!-- part_id -->
-    <input type="hidden"
-           name="parts[${partIdx}][part_id]"
-           value="${escapeAttr(partId)}">
+      <button type="button"
+              class="btn btn-outline-danger btn-sm removePartBtn">
+        <i class="bi bi-trash"></i>
+      </button>
+
+      <input type="hidden"
+            name="parts[${partIdx}][part_id]"
+            value="${escapeAttr(partId)}">
+    </div>
+
   </div>
 
-  <div id="${collapseId}" class="card-body d-none">
+  <div id="${collapseId}" class="card-body d-none ">
 
     <div class="mb-3">
       <label class="form-label">Delens namn</label>
@@ -231,20 +235,20 @@ Varv 3-6: ..."></textarea>
     </div>
     <div class="mb-3">
      <div class="mt-3">
-          <label class="form-label">Bild (valfri)</label>
-          <input type="file"
-                class="form-control partImageInput"
-                accept="image/*">
-          <div class="form-text">Skalas ner och sparas lokalt.</div>
+        <label class="form-label">Bild (valfri)</label>
+        <input type="file"
+              class="form-control partImageInput"
+              accept="image/*">
+        <div class="form-text">Skalas ner och sparas lokalt.</div>
 
-          <img class="img-fluid rounded mt-2 d-none partImagePreview">
-          <button type="button"
-                  class="btn btn-outline-danger btn-sm mt-2 d-none removePartImageBtn">
-            <i class="bi bi-trash me-1"></i>Ta bort bild
-          </button>
-        </div>
+        <img class="img-fluid rounded mt-2 d-none partImagePreview">
+        <button type="button"
+                class="btn btn-outline-danger btn-sm mt-2 d-none removePartImageBtn">
+          <i class="bi bi-trash me-1"></i>Ta bort bild
+        </button>
       </div>
     </div>
+  </div>
 `;
 
   // starta med ett första varv
