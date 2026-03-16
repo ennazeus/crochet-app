@@ -360,12 +360,13 @@ function normalizeRowsText(text) {
   if (!text) return "";
 
   let t = text
-    // ersätt non-breaking space
     .replace(/\u00A0/g, " ")
-    // normalisera radbrytningar
     .replace(/\r\n?/g, "\n")
-    // ta bort överdrivna mellanslag
     .replace(/[ \t]{2,}/g, " ");
+
+  // PDF-fixar
+  t = t.replace(/\n(\[[^\]]+\]|\(\s*[^)]*?\s*\))/g, " $1");
+  t = t.replace(/\b(row|rnd|round|varv)\s*\n\s*(\d+)/gi, "$1 $2");
 
   return t
     .split("\n")
@@ -375,12 +376,13 @@ function normalizeRowsText(text) {
 }
 
 // Känner igen: "Varv 1: …", "V1-3 …", "Row 2–5: …", "Rnd 4. …"
-const rowRe = /^(?:varv|v|r|row|rows|round|rnd|rnds|rounds)\s*(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:\{([^}]*)\})?\s*[:.)-]?\s*(.*)$/i;
+const rowRe =
+/^(?:varv|v|r|row|rows|round|rounds|rnd|rnds)\s*(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:[\(\{]([^)\}]*)[\)\}])?\s*[:.)-]?\s*(.*)$/i;
 
+// Känner igen: "4-6 (3 varv): text", "4 - 6: text", "4–6. text"
 const rangeRowRe = /^(\d+)\s*[-–]\s*(\d+)\s*(?:\(([^)]*)\))?\s*[:.)-]?\s*(.*)$/;
 
-// Extra: rader som bara börjar med ett nummer, t.ex. "1: 6 fm"
-// eller "1) 6 fm", "1 - 6 fm"
+// Känner igen: "1: text", "1. text", "1) text", "1 - text"
 const numberRowRe = /^(\d+)\s*[:.)-]\s*(.*)$/;
 
 // Returnerar [{row_number, instruction}, ...]
