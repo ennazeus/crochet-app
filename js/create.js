@@ -377,6 +377,8 @@ function normalizeRowsText(text) {
 // Känner igen: "Varv 1: …", "V1-3 …", "Row 2–5: …", "Rnd 4. …"
 const rowRe = /^(?:varv|v|r|row|rows|round|rnd|rnds|rounds)\s*(\d+)\s*(?:[-–]\s*(\d+))?\s*(?:\{([^}]*)\})?\s*[:.)-]?\s*(.*)$/i;
 
+const rangeRowRe = /^(\d+)\s*[-–]\s*(\d+)\s*(?:\(([^)]*)\))?\s*[:.)-]?\s*(.*)$/;
+
 // Extra: rader som bara börjar med ett nummer, t.ex. "1: 6 fm"
 // eller "1) 6 fm", "1 - 6 fm"
 const numberRowRe = /^(\d+)\s*[:.)-]\s*(.*)$/;
@@ -445,6 +447,31 @@ function parseRowsText(text) {
         lastRow = row;
         next = Math.max(next, start + 1);
       }
+      continue;
+    }
+
+    // matcha "4-6 (3 rounds): text"
+    m = line.match(rangeRowRe);
+    if (m) {
+      if (seenAnyRow) flushTailBufferToLastRow();
+      seenAnyRow = true;
+
+      const start = parseInt(m[1], 10);
+      const end = parseInt(m[2], 10);
+      const note = (m[3] || "").trim();
+      const instr = (m[4] || "").trim();
+
+      for (let n = start; n <= end; n++) {
+        const row = {
+          row_number: n,
+          instruction: instr,
+          note: note || null
+        };
+        out.push(row);
+        lastRow = row;
+      }
+
+      next = end + 1;
       continue;
     }
 
