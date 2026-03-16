@@ -353,6 +353,80 @@ function getNextPartName() {
   return `Del ${partIndex + 1}`;
 }
 
+function removeRowAndRenumber(row) {
+  const rowsContainer = row.closest(".rowsContainer");
+
+  const numberInput = row.querySelector('input[name$="[row_number]"]');
+  const removedNumber = parseInt(numberInput?.value, 10);
+
+  const next = row.nextElementSibling || row.previousElementSibling;
+
+  row.remove();
+
+  if (!isNaN(removedNumber)) {
+    rowsContainer.querySelectorAll('input[name$="[row_number]"]').forEach(inp => {
+      const n = parseInt(inp.value, 10);
+      if (!isNaN(n) && n > removedNumber) {
+        inp.value = n - 1;
+      }
+    });
+  }
+
+  const card = rowsContainer.closest(".card");
+  const partIdx = card.dataset.partIndex;
+  normalizeRowIndexes(rowsContainer, partIdx);
+
+  next?.querySelector('input[name$="[instruction]"]')?.focus?.();
+}
+
+function sortRowsByNumber(rowsContainer) {
+
+  const rows = [...rowsContainer.querySelectorAll(".input-group")];
+
+  rows.sort((a, b) => {
+
+    const aNum = parseInt(
+      a.querySelector('input[name$="[row_number]"]').value,
+      10
+    ) || 0;
+
+    const bNum = parseInt(
+      b.querySelector('input[name$="[row_number]"]').value,
+      10
+    ) || 0;
+
+    return aNum - bNum;
+  });
+
+  rows.forEach(row => rowsContainer.appendChild(row));
+}
+
+function normalizeRowIndexes(rowsContainer, partIdx) {
+
+  const rows = [...rowsContainer.querySelectorAll(".input-group")];
+
+  rows.forEach((row, i) => {
+
+    const newIdx = i + 1;
+    row.dataset.rowIndex = newIdx;
+
+    const numberInput = row.querySelector('input[name$="[row_number]"]');
+    const instrInput  = row.querySelector('input[name$="[instruction]"]');
+
+    if (numberInput) {
+      numberInput.name =
+        `parts[${partIdx}][rows][${newIdx}][row_number]`;
+    }
+
+    if (instrInput) {
+      instrInput.name =
+        `parts[${partIdx}][rows][${newIdx}][instruction]`;
+    }
+
+  });
+
+}
+
 // --- Parser per del (din) ---
 // Normalisera inklistrad text till en rad per "Varv …" / "Row …"
 // och försök bryta PDF-klumpar där ett nytt varv börjar mitt i raden.
@@ -373,6 +447,23 @@ function normalizeRowsText(text) {
     .map(s => s.trim())
     .filter(Boolean)
     .join("\n");
+}
+
+function normalizeRowNumbers(rowsContainer) {
+  const rows = [...rowsContainer.querySelectorAll(".input-group")];
+  if (!rows.length) return;
+
+  const firstInput = rows[0].querySelector('input[name$="[row_number]"]');
+  let start = parseInt(firstInput?.value, 10);
+
+  if (isNaN(start)) start = 1;
+
+  rows.forEach((row, i) => {
+    const numInput = row.querySelector('input[name$="[row_number]"]');
+    if (numInput) {
+      numInput.value = start + i;
+    }
+  });
 }
 
 // Känner igen: "Varv 1: …", "V1-3 …", "Row 2–5: …", "Rnd 4. …"
@@ -617,9 +708,12 @@ partsContainer?.addEventListener("click", (e) => {
 
     // Annars skapa ny rad
     let nextIdx = getMaxRowIdx(rowsContainer) + 1;
-    const nextRowNumber = getMaxRowNumber(rowsContainer) + 1;
 
-    const newRow = createRow(partIdx, nextIdx, "", nextRowNumber);
+    const lastRow = rowsContainer.lastElementChild;
+    const numberInput = lastRow?.querySelector('input[name$="[row_number]"]');
+    let baseNumber = parseInt(numberInput?.value, 10) || 0;
+
+    const newRow = createRow(partIdx, nextIdx, "", baseNumber + 1);
     rowsContainer.appendChild(newRow);
 
     setTimeout(() => {
@@ -663,7 +757,8 @@ partsContainer?.addEventListener("click", (e) => {
   }
 
   if (removeRowBtn) {
-    removeRowBtn.closest(".input-group")?.remove();
+    const row = removeRowBtn.closest(".input-group");
+    removeRowAndRenumber(row);
     return;
   }
 
@@ -804,10 +899,18 @@ partsContainer?.addEventListener("keydown", (e) => {
     e.preventDefault();
 
     let nextIdx = getMaxRowIdx(rowsContainer) + 1;
-    const nextRowNumber = getMaxRowNumber(rowsContainer) + 1;
 
-    const newRow = createRow(partIdx, nextIdx, "", nextRowNumber);
+    const numberInput = row.querySelector('input[name$="[row_number]"]');
+    let baseNumber = parseInt(numberInput?.value, 10) || 0;
+
+    const newRow = createRow(partIdx, nextIdx, "", baseNumber + 1);
     row.after(newRow);
+
+    normalizeRowNumbers(rowsContainer);
+
+    const card = rowsContainer.closest(".card");
+    const partIdx2 = card.dataset.partIndex;
+    normalizeRowIndexes(rowsContainer, partIdx2);
 
     const newInput = newRow.querySelector('input[name$="[instruction]"]');
     newInput?.focus();
@@ -826,11 +929,10 @@ partsContainer?.addEventListener("keydown", (e) => {
 
     e.preventDefault();
 
-    const prevRow = row.previousElementSibling;
-    row.remove();
+    removeRowAndRenumber(row);
 
-    const prevInput = prevRow?.querySelector('input[name$="[instruction]"]');
-    prevInput?.focus();
+    /*const prevInput = prevRow?.querySelector('input[name$="[instruction]"]');
+    prevInput?.focus();*/
   }
 
 });
@@ -919,6 +1021,23 @@ partsContainer?.addEventListener("blur", (e) => {
   const max = getMaxRowNumber(rowsContainer);
 
   numberInput.value = max ? max + 1 : 1;
+
+}, true);
+
+partsContainer?.addEventListener("blur", (e) => {
+
+  const numberInput = e.target.closest('input[name$="[row_number]"]');
+  if (!numberInput) return;
+
+  const rowsContainer = numberInput.closest(".rowsContainer");
+  if (!rowsContainer) return;
+
+  sortRowsByNumber(rowsContainer);
+  normalizeRowNumbers(rowsContainer);
+
+  const card = rowsContainer.closest(".card");
+  const partIdx = card.dataset.partIndex;
+  normalizeRowIndexes(rowsContainer, partIdx);
 
 }, true);
 
